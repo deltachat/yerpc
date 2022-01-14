@@ -1,0 +1,16 @@
+[package]
+name = "jsonrpc_derive"
+version = "0.1.0"
+authors = ["Delta Chat Developers (ML) <delta@codespeak.net>"]
+edition = "2018"
+license = "MPL-2.0"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+anyhow = "1.0.42"
+proc-macro2 = "1.0.27"
+quote = "1.0.9"
+syn = {version="1.0.73", features=["full", "parsing"]}
+darling = "0.13.1"
