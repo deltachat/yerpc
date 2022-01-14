@@ -1,40 +1,87 @@
-use async_trait::async_trait;
-use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
+use async_trait::async_trait;
 pub use jsonrpc_derive::rpc;
+use serde::{Deserialize, Serialize};
+use typescript_type_def::TypeDef;
+
+mod version;
+pub use version::Version;
 
 pub type Id = u32;
+pub type Result<T> = std::result::Result<T, Error>;
 
-#[derive(Serialize, Deserialize, Debug)]
+/// Only used for generated TS bindings
+#[derive(Serialize, Deserialize, Debug, TypeDef)]
 #[serde(untagged)]
-enum Message {
+pub enum RpcResult<T: TypeDef> {
+    Ok(T),
+    Err(Error),
+}
+
+#[derive(Serialize, Deserialize, Debug, TypeDef)]
+#[serde(untagged)]
+pub enum Message {
     Request(Request),
     Response(Response),
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-struct Request {
-    jsonrpc: String,
-    method: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    params: Option<serde_json::Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    id: Option<Id>,
+#[derive(Serialize, Deserialize, Debug, TypeDef)]
+#[serde(untagged)]
+pub enum Params {
+    Positional(Vec<serde_json::Value>),
+    Structured(serde_json::Map<String, serde_json::Value>)
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-struct Response {
-    jsonrpc: String,
-    id: Option<Id>,
+impl Params {
+    pub fn into_value(self) -> serde_json::Value {
+        match self {
+            Params::Positional(list) => serde_json::Value::Array(list),
+            Params::Structured(object) => serde_json::Value::Object(object)
+        }
+    }
+}
+
+impl From<Params> for serde_json::Value {
+    fn from(params: Params) -> Self {
+        params.into_value()
+    }
+}
+
+impl TryFrom<serde_json::Value> for Params {
+    type Error = Error;
+    fn try_from(value: serde_json::Value) -> std::result::Result<Self, Self::Error> {
+        match value {
+            serde_json::Value::Object(object) => Ok(Params::Structured(object)),
+            serde_json::Value::Array(list) => Ok(Params::Positional(list)),
+            _ => Err(Error::invalid_params())
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, TypeDef)]
+pub struct Request {
+    pub jsonrpc: Version,
+    pub method: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    result: Option<serde_json::Value>,
+    pub params: Option<Params>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    error: Option<Error>,
+    pub id: Option<Id>,
+}
+
+#[derive(Serialize, Deserialize, Debug, TypeDef)]
+pub struct Response {
+    pub jsonrpc: Version,
+    pub id: Option<Id>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub result: Option<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<Error>,
 }
 impl Response {
     pub fn error(id: Option<Id>, error: Error) -> Self {
         Self {
-            jsonrpc: "2.0".to_owned(),
+            jsonrpc: Version::V2,
             id,
             error: Some(error),
             result: None,
@@ -42,7 +89,7 @@ impl Response {
     }
     pub fn success(id: Id, result: serde_json::Value) -> Self {
         Self {
-            jsonrpc: "2.0".to_owned(),
+            jsonrpc: Version::V2,
             id: Some(id),
             result: Some(result),
             error: None,
@@ -50,7 +97,7 @@ impl Response {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, TypeDef)]
 pub struct Error {
     pub code: i32,
     pub message: String,
@@ -86,8 +133,19 @@ impl Error {
         }
     }
 
+    pub fn invalid_params() -> Self {
+        Self::new(Error::INVALID_PARAMS, "Params has to be an object or array")
+    }
+
     pub fn method_not_found() -> Self {
         Self::new(Error::METHOD_NOT_FOUND, "Method not found")
+    }
+
+    pub fn invalid_args_len(n: usize) -> Self {
+        Self::new(
+            Error::INVALID_PARAMS,
+            format!("This method takes an array of {} arguments", n),
+        )
     }
 }
 
@@ -103,18 +161,14 @@ impl From<serde_json::Error> for Error {
 
 #[async_trait]
 pub trait RpcHandler: Sync + Send + 'static {
-    async fn on_notification(
-        &self,
-        method: String,
-        params: serde_json::Value,
-    ) -> Result<(), Error> {
+    async fn on_notification(&self, _method: String, _params: serde_json::Value) -> Result<()> {
         Ok(())
     }
     async fn on_request(
         &self,
-        method: String,
-        params: serde_json::Value,
-    ) -> Result<serde_json::Value, Error> {
+        _method: String,
+        _params: serde_json::Value,
+    ) -> Result<serde_json::Value> {
         Err(Error::new(Error::METHOD_NOT_FOUND, "Method not found"))
     }
 }
@@ -132,20 +186,17 @@ pub async fn handle_message<T: RpcHandler>(session: &T, input: &str) -> Option<S
 
     let response = match message {
         Message::Request(request) => {
-            // match request.params {
-            //     Some(serde_json::Value::Object(_)) | Some(serde_json::Value::Array(_)) | None => {},
-            //     _ =>
-            // }
+            let params = request.params.map(Params::into_value).unwrap_or_default();
             match request.id {
                 None | Some(0) => match session
-                    .on_notification(request.method, request.params.unwrap_or_default())
+                    .on_notification(request.method, params)
                     .await
                 {
                     Ok(()) => None,
                     Err(err) => Some(Response::error(request.id, err)),
                 },
                 Some(id) => match session
-                    .on_request(request.method, request.params.unwrap_or_default())
+                    .on_request(request.method, params)
                     .await
                 {
                     Ok(payload) => Some(Response::success(id, payload)),
@@ -153,7 +204,7 @@ pub async fn handle_message<T: RpcHandler>(session: &T, input: &str) -> Option<S
                 },
             }
         }
-        Message::Response(response) => Some(Response::error(
+        Message::Response(_response) => Some(Response::error(
             None,
             Error::new(
                 Error::INVALID_REQUEST,
@@ -179,10 +230,3 @@ pub async fn handle_message<T: RpcHandler>(session: &T, input: &str) -> Option<S
         },
     }
 }
-
-// #[derive(Serialize, Deserialize, Debug)]
-// #[serde(untagged)]
-// enum Params {
-//     List(Vec<serde_json::Value>),
-//     Object(HashMap<String, serde_json::Value>),
-// }

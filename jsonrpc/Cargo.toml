@@ -6,8 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-jsonrpc_derive = { path  = "../derive" }
+jsonrpc_derive = { path  = "../jsonrpc-derive" }
 async-trait = "0.1.52"
-serde = "1.0.133"
+serde = { version = "1.0.133", features = ["derive"] }
 serde_json = "1.0.74"
 log = "0.4.14"
+# typescript-type-def = "0.3.1"
+typescript-type-def = { path = "../../typescript-type-def", features = ["json_value"] }
