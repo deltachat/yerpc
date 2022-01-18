@@ -13,3 +13,4 @@ serde_json = "1.0.74"
 log = "0.4.14"
 # typescript-type-def = "0.3.1"
 typescript-type-def = { path = "../../typescript-type-def", features = ["json_value"] }
+anyhow = { version = "1.0.52", optional = true }

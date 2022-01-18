@@ -1,12 +1,13 @@
 use std::collections::HashMap;
 
-use async_trait::async_trait;
-pub use jsonrpc_derive::rpc;
+pub use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use typescript_type_def::TypeDef;
+pub use typescript_type_def::TypeDef;
 
+pub use jsonrpc_derive::rpc;
 mod version;
 pub use version::Version;
+pub mod typescript;
 
 pub type Id = u32;
 pub type Result<T> = std::result::Result<T, Error>;
@@ -30,14 +31,14 @@ pub enum Message {
 #[serde(untagged)]
 pub enum Params {
     Positional(Vec<serde_json::Value>),
-    Structured(serde_json::Map<String, serde_json::Value>)
+    Structured(serde_json::Map<String, serde_json::Value>),
 }
 
 impl Params {
     pub fn into_value(self) -> serde_json::Value {
         match self {
             Params::Positional(list) => serde_json::Value::Array(list),
-            Params::Structured(object) => serde_json::Value::Object(object)
+            Params::Structured(object) => serde_json::Value::Object(object),
         }
     }
 }
@@ -54,7 +55,7 @@ impl TryFrom<serde_json::Value> for Params {
         match value {
             serde_json::Value::Object(object) => Ok(Params::Structured(object)),
             serde_json::Value::Array(list) => Ok(Params::Positional(list)),
-            _ => Err(Error::invalid_params())
+            _ => Err(Error::invalid_params()),
         }
     }
 }
@@ -159,6 +160,17 @@ impl From<serde_json::Error> for Error {
     }
 }
 
+#[cfg(feature = "anyhow")]
+impl From<anyhow::Error> for Error {
+    fn from(error: anyhow::Error) -> Self {
+        Self {
+            code: Error::INTERNAL_ERROR,
+            message: "Internal server error".to_string(),
+            data: None,
+        }
+    }
+}
+
 #[async_trait]
 pub trait RpcHandler: Sync + Send + 'static {
     async fn on_notification(&self, _method: String, _params: serde_json::Value) -> Result<()> {
@@ -188,17 +200,11 @@ pub async fn handle_message<T: RpcHandler>(session: &T, input: &str) -> Option<S
         Message::Request(request) => {
             let params = request.params.map(Params::into_value).unwrap_or_default();
             match request.id {
-                None | Some(0) => match session
-                    .on_notification(request.method, params)
-                    .await
-                {
+                None | Some(0) => match session.on_notification(request.method, params).await {
                     Ok(()) => None,
                     Err(err) => Some(Response::error(request.id, err)),
                 },
-                Some(id) => match session
-                    .on_request(request.method, params)
-                    .await
-                {
+                Some(id) => match session.on_request(request.method, params).await {
                     Ok(payload) => Some(Response::success(id, payload)),
                     Err(err) => Some(Response::error(Some(id), err)),
                 },

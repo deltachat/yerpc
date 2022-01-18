@@ -67,6 +67,15 @@ impl RpcApi {
         Ok(a + b)
     }
 
+    pub async fn square(&self, num: (f32,)) -> jsonrpc::Result<f32> {
+        Ok(num.0 * num.0)
+    }
+
+    #[rpc(positional)]
+    pub async fn nothing(&self) -> jsonrpc::Result<()> {
+        Ok(())
+    }
+
     #[rpc(positional)]
     pub async fn many_args(&self, a: usize, b: Vec<String>) -> jsonrpc::Result<()> {
         eprintln!("called with {} and {:?}", a, b);
@@ -94,12 +103,17 @@ async fn main() -> Result<(), std::io::Error> {
     app.at("/ws").get(WebSocket::new(
         |request: Request<Arc<State>>, mut stream| async move {
             let session = Session::new(request.state().clone());
-            stream.send_json(&jsonrpc::Request {
-                jsonrpc:jsonrpc::Version::V2,
-                params: Some(jsonrpc::Params::Positional(vec![serde_json::to_value("hello").unwrap()])),
-                method: "sum2".to_string(),
-                id: Some(1)
-            }).await?;
+            stream
+                .send_json(&jsonrpc::Request {
+                    jsonrpc: jsonrpc::Version::V2,
+                    params: Some(jsonrpc::Params::Positional(vec![serde_json::to_value(
+                        "hello",
+                    )
+                    .unwrap()])),
+                    method: "sum2".to_string(),
+                    id: Some(1),
+                })
+                .await?;
             while let Some(Ok(Message::Text(input))) = stream.next().await {
                 if let Some(res) = jsonrpc::handle_message(&session, &input).await {
                     stream.send(Message::Text(res)).await?;

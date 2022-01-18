@@ -1,133 +1,62 @@
-use super::RpcAttrArgs;
-use convert_case::{Case, Casing};
-use darling::FromAttributes;
-use proc_macro2::{Ident, Span, TokenStream};
-use quote::quote;
-use syn::{
-    FnArg, GenericArgument, ImplItem, ImplItemMethod, ItemImpl, PathArguments, ReturnType, Type,
+use crate::{
+    util::{extract_result_ty, ty_ident},
+    Inputs, RpcInfo,
 };
-
-pub(crate) fn impl_ts(args: &RpcAttrArgs, input: &ItemImpl) -> TokenStream {
-    let mut ts_methods = vec![];
-    for item in &input.items {
-        if let ImplItem::Method(method) = item {
-            ts_methods.push(TsMethod::from_input(method));
-        }
-    }
-    generate_typescript_generator(ts_methods, &args.ts_outdir)
-}
-
-struct TsMethod<'s> {
-    attrs: RpcAttrArgs,
-    name: String,
-    inputs: Vec<&'s Type>,
-    output: Option<&'s Type>,
-}
-
-impl<'s> TsMethod<'s> {
-    pub fn from_input(method: &'s ImplItemMethod) -> Self {
-        let args = RpcAttrArgs::from_attributes(&method.attrs).unwrap_or_default();
-        let name = args
-            .name
-            .clone()
-            .unwrap_or_else(|| method.sig.ident.to_string());
-        let output = match &method.sig.output {
-            ReturnType::Default => None,
-            ReturnType::Type(_, ref ty) => Some(ty.as_ref()),
-        };
-        let mut inputs = vec![];
-        for arg in &method.sig.inputs {
-            match arg {
-                FnArg::Typed(ref arg) => inputs.push(arg.ty.as_ref()),
-                FnArg::Receiver(_) => {}
+use convert_case::{Case, Casing};
+use proc_macro2::TokenStream;
+use quote::quote;
+pub(crate) fn generate_typescript_generator(info: &RpcInfo) -> TokenStream {
+    let mut gen_types = vec![];
+    let mut gen_methods = vec![];
+    for method in &info.methods {
+        let (is_positional, gen_args) = match &method.input {
+            Inputs::Positional(ref inputs) => {
+                let mut gen_args = vec![];
+                for (i, input) in inputs.iter().enumerate() {
+                    let ty = input.ty;
+                    let name = input
+                        .ident
+                        .map_or_else(|| format!("arg{}", i + 1), ToString::to_string);
+                    gen_types.push(quote!(#ty));
+                    gen_args.push(quote!((#name.to_string(), &<#ty as TypeDef>::INFO)))
+                }
+                (true, gen_args)
             }
-        }
-        Self {
-            name,
-            inputs,
-            output,
-            attrs: args,
-        }
-    }
-}
-
-fn generate_typescript_generator(
-    methods: Vec<TsMethod>,
-    custom_outdir: &Option<String>,
-) -> TokenStream {
-    let mut types = vec![];
-    let mut defs = vec![];
-    let mut ts_functions: Vec<TokenStream> = vec![];
-
-    for method in methods {
-        // Generate a MethodNameInput struct for the typescript definition.
-        let input_newty = ty_ident(&format!("{}Input", method.name));
-        let input_tys = method.inputs.iter().map(|ty| quote!(#ty,));
-        defs.push(quote!(
-            #[derive(::typescript_type_def::TypeDef)]
-            struct #input_newty(#(#input_tys)*);
-        ));
-        types.push(quote!(#input_newty));
-
-        // Generate a MethodNameOutput struct for the typescript definition.
-        let output_newty = ty_ident(&format!("{}Output", method.name));
-        let output_ty = &method
-            .output
-            .map(extract_result_ty)
-            .map(|ty| quote!(#ty))
-            .unwrap_or(quote!(()));
-        defs.push(quote!(
-            #[derive(::typescript_type_def::TypeDef)]
-            struct #output_newty(#output_ty);
-        ));
-        types.push(quote!(#output_newty));
-
-        let ts_method = method.name.to_case(Case::Camel);
-        let ts_ns = "T.";
-        let ts_output = if method.attrs.notification {
-            "void".to_owned()
-        } else {
-            format!("Promise<{}{}>", ts_ns, output_newty)
-        };
-        let (ts_params, ts_call) = if method.attrs.positional {
-            let mut param_str = String::new();
-            let mut call_str = String::new();
-            for (i, input) in method.inputs.iter().enumerate() {
-                let input_newty = ty_ident(&format!("{}Input{}", method.name, i + 1));
-                let var_name = format!("arg{}", i);
-                defs.push(quote!(
-                    #[derive(::typescript_type_def::TypeDef)]
-                    struct #input_newty(#input);
-                ));
-                types.push(quote!(#input_newty));
-                param_str.push_str(&format!("{}: {}{}, ", var_name, ts_ns, input_newty));
-                call_str.push_str(&format!("{}, ", var_name));
+            Inputs::Structured(Some(input)) => {
+                let mut gen_args = vec![];
+                let ty = input.ty;
+                let name = input
+                    .ident
+                    .map_or_else(|| "params".to_string(), ToString::to_string);
+                gen_types.push(quote!(#ty));
+                gen_args.push(quote!((#name.to_string(), &<#ty as TypeDef>::INFO)));
+                (false, gen_args)
             }
-            param_str.truncate(param_str.len() - 2);
-            call_str.truncate(call_str.len() - 2);
-            let call_str = format!("[{}]", call_str);
-            (param_str, call_str)
-        } else {
-            (format!("params: {}{}", ts_ns, input_newty), "params".into())
+            Inputs::Structured(None) => (false, vec![]),
         };
-
-        let fn_str = if method.attrs.notification {
-            format!(
-                "    public {}({}): {} {{ return this._notification('{}', {}) }}\n",
-                ts_method, ts_params, ts_output, method.name, ts_call
-            )
-        } else {
-            format!(
-                "    public async {}({}): {} {{ return this._request('{}', {}) }}\n",
-                ts_method, ts_params, ts_output, method.name, ts_call
-            )
+        let gen_output = match (method.output, method.is_notification) {
+            (_, true) | (None, _) => quote!(None),
+            (Some(ty), false) => {
+                let ty = extract_result_ty(ty);
+                gen_types.push(quote!(#ty));
+                quote!(Some(&<#ty as TypeDef>::INFO))
+            }
         };
-        ts_functions.push(quote!(
-            out.push_str(#fn_str);
+        let ts_name = method.name.to_case(Case::Camel);
+        let rpc_name = &method.name;
+        let is_notification = method.is_notification;
+        gen_methods.push(quote!(
+                let args = vec![#(#gen_args),*];
+                let method = Method::new(#ts_name, #rpc_name, args, #gen_output, #is_notification, #is_positional);
+                out.push_str(&method.to_string(&root_namespace));
         ));
     }
 
-    let outdir_path = custom_outdir.as_deref().unwrap_or("ts-bindings");
+    let outdir_path = info
+        .attr_args
+        .ts_outdir
+        .as_deref()
+        .unwrap_or("typescript/generated");
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set");
     let outdir = std::path::PathBuf::from(&manifest_dir).join(&outdir_path);
     let outdir = outdir.to_str().unwrap();
@@ -137,52 +66,35 @@ fn generate_typescript_generator(
         #[cfg(test)]
         #[test]
         fn generate_ts_bindings() {
-            // Generate typescript definitions.
-            #(#defs)*
-            #[derive(typescript_type_def::TypeDef)]
-            struct __AllTyps(#(#types),*, ::jsonrpc::Error, ::jsonrpc::Message);
-            let mut bindings = ::std::vec::Vec::new();
-            let mut options = ::typescript_type_def::DefinitionFileOptions::default();
-            options.root_namespace = None;
-            ::typescript_type_def::write_definition_file::<_, __AllTyps>(&mut bindings, options)
-                .expect("Failed to generate typescript bindings");
+            use ::typescript_type_def::{TypeDef, type_expr::TypeInfo, DefinitionFileOptions};
+            use ::jsonrpc::typescript::{typedef_to_expr_string, export_types_to_file, Method};
+            use ::std::{fs, path::Path};
 
-            // Generate a raw client.
-            let mut out = String::new();
+            // Create output directory.
+            let outdir = Path::new(#outdir);
+            fs::create_dir_all(&outdir).expect(&format!("Failed to create directory `{}`", outdir.display()));
+
+            // Create helper type with all exported types.
+            // #(#gen_definitions)*
+            #[derive(TypeDef)]
+            struct __AllTyps(#(#gen_types),*);
+            // Write typescript types to file.
+            export_types_to_file::<__AllTyps>(&outdir.join("types.ts"), None).expect("Failed to write TS out");
+            export_types_to_file::<::jsonrpc::Message>(&outdir.join("jsonrpc.ts"), None).expect("Failed to write TS out");
+
+            // // Generate a raw client.
+            let root_namespace = Some("T");
             let mut out = [
                 r#"import * as T from "./types.js""#,
+                r#"import * as RPC from "./jsonrpc.js""#,
                 r#"export abstract class RawClient {"#,
-                r#"    abstract _notification(method: string, params?: any): void;"#,
-                r#"    abstract _request(method: string, params?: any): Promise<any>;"#,
+                r#"    abstract _notification(method: string, params?: RPC.Params): void;"#,
+                r#"    abstract _request(method: string, params?: RPC.Params): Promise<unknown>;"#,
                 r#""#
             ].join("\n");
-            #(#ts_functions)*
+            #(#gen_methods)*
             out.push_str("}\n");
-
-            // Write the files.
-            let outdir = ::std::path::Path::new(#outdir);
-            ::std::fs::create_dir_all(&outdir).expect(&format!("Failed to create directory `{}`", outdir.display()));
-            ::std::fs::write(&outdir.join("types.ts"), &bindings).expect("Failed to write TS bindings");
-            ::std::fs::write(&outdir.join("client.ts"), &out).expect("Failed to write TS bindings");
+            fs::write(&outdir.join("client.ts"), &out).expect("Failed to write TS bindings");
         }
     }
-}
-
-fn extract_result_ty(ty: &Type) -> &Type {
-    if let Type::Path(path) = ty {
-        if let Some(last) = path.path.segments.last() {
-            if last.ident == "Result" {
-                if let PathArguments::AngleBracketed(ref generics) = last.arguments {
-                    if let Some(GenericArgument::Type(inner_ty)) = generics.args.first() {
-                        return inner_ty;
-                    }
-                }
-            }
-        }
-    }
-    ty
-}
-
-fn ty_ident(name: &str) -> Ident {
-    Ident::new(&name.to_case(Case::UpperCamel), Span::call_site())
 }
