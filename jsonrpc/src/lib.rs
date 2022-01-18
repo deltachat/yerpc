@@ -1,13 +1,12 @@
-use std::collections::HashMap;
-
 pub use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-pub use typescript_type_def::TypeDef;
 
 pub use jsonrpc_derive::rpc;
 mod version;
 pub use version::Version;
+
 pub mod typescript;
+use typescript::TypeDef;
 
 pub type Id = u32;
 pub type Result<T> = std::result::Result<T, Error>;

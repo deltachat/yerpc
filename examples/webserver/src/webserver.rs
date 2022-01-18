@@ -1,12 +1,12 @@
 use async_std::prelude::*;
 use async_trait::async_trait;
 use serde::Deserialize;
-use typescript_type_def::TypeDef;
 
 use std::sync::Arc;
 use tide::Request;
 use tide_websockets::{Message, WebSocket};
 
+use jsonrpc::typescript::TypeDef;
 use jsonrpc::{rpc, RpcHandler};
 
 struct State {

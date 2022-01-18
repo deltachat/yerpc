@@ -1,15 +1,24 @@
 [package]
-name = "jsonrpc"
+name = "deltachat_jsonrpc"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[[bin]]
+name = "webserver"
+path = "src/webserver.rs"
+
 [dependencies]
-jsonrpc_derive = { path  = "../jsonrpc-derive" }
-async-trait = "0.1.52"
-serde = { version = "1.0.133", features = ["derive"] }
+tide = "0.16.0"
+tide-websockets = "0.4.0"
+anyhow = "1.0.52"
+serde = "1.0.133"
 serde_json = "1.0.74"
+async-std = { version="1.9.0", features = ["attributes"]}
+futures = "0.3.19"
+env_logger = "0.9.0"
 log = "0.4.14"
+async-trait = "0.1.52"
+jsonrpc = { path  = "../../jsonrpc" }
 typescript-type-def = { git = "https://github.com/Frando/rust-typescript-type-def.git", branch = "delta", features = ["json_value"] }
-anyhow = { version = "1.0.52", optional = true }

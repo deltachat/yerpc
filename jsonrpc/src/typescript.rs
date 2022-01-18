@@ -1,8 +1,9 @@
 use std::io;
 use std::path::Path;
-use typescript_type_def::{
-    type_expr::TypeInfo, write_definition_file, DefinitionFileOptions, TypeDef,
-};
+use typescript_type_def::{type_expr::TypeInfo, write_definition_file, DefinitionFileOptions};
+
+pub use typescript_type_def as type_def;
+pub use typescript_type_def::TypeDef;
 
 pub fn typedef_to_expr_string<T: TypeDef>(root_namespace: &Option<&str>) -> io::Result<String> {
     let mut options = DefinitionFileOptions::default();

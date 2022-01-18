@@ -1,7 +1,4 @@
-use crate::{
-    util::{extract_result_ty, ty_ident},
-    Inputs, RpcInfo,
-};
+use crate::{util::extract_result_ty, Inputs, RpcInfo};
 use convert_case::{Case, Casing};
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -66,7 +63,7 @@ pub(crate) fn generate_typescript_generator(info: &RpcInfo) -> TokenStream {
         #[cfg(test)]
         #[test]
         fn generate_ts_bindings() {
-            use ::typescript_type_def::{TypeDef, type_expr::TypeInfo, DefinitionFileOptions};
+            use ::jsonrpc::typescript::type_def::{TypeDef, type_expr::TypeInfo, DefinitionFileOptions};
             use ::jsonrpc::typescript::{typedef_to_expr_string, export_types_to_file, Method};
             use ::std::{fs, path::Path};
 

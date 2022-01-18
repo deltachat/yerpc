@@ -28,6 +28,6 @@ pub fn extract_result_ty(ty: &Type) -> &Type {
     ty
 }
 
-pub fn ty_ident(name: &str) -> Ident {
-    Ident::new(&name.to_case(Case::UpperCamel), Span::call_site())
-}
+// pub fn ty_ident(name: &str) -> Ident {
+//     Ident::new(&name.to_case(Case::UpperCamel), Span::call_site())
+// }
