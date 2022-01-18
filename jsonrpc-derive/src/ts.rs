@@ -58,6 +58,8 @@ pub(crate) fn generate_typescript_generator(info: &RpcInfo) -> TokenStream {
     let outdir = std::path::PathBuf::from(&manifest_dir).join(&outdir_path);
     let outdir = outdir.to_str().unwrap();
 
+    let ts_base = include_str!("client.ts");
+
     quote! {
         /// Generate typescript bindings for the JSON-RPC API.
         #[cfg(test)]
@@ -81,17 +83,11 @@ pub(crate) fn generate_typescript_generator(info: &RpcInfo) -> TokenStream {
 
             // // Generate a raw client.
             let root_namespace = Some("T");
-            let mut out = [
-                r#"import * as T from "./types.js""#,
-                r#"import * as RPC from "./jsonrpc.js""#,
-                r#"export abstract class RawClient {"#,
-                r#"    abstract _notification(method: string, params?: RPC.Params): void;"#,
-                r#"    abstract _request(method: string, params?: RPC.Params): Promise<unknown>;"#,
-                r#""#
-            ].join("\n");
+            let ts_module = #ts_base;
+            let mut out = String::new();
             #(#gen_methods)*
-            out.push_str("}\n");
-            fs::write(&outdir.join("client.ts"), &out).expect("Failed to write TS bindings");
+            let ts_module = ts_module.replace("#methods", &out);
+            fs::write(&outdir.join("client.ts"), &ts_module).expect("Failed to write TS bindings");
         }
     }
 }

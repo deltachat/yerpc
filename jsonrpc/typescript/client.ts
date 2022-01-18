@@ -1,11 +1,9 @@
-import { RawClient } from "./generated/client.js";
-import type {
-  Error,
-  Message,
-  Params,
-  Request,
-  Response,
-} from "./generated/jsonrpc.js";
+import { Request, Response, Message, Error, Params } from './jsonrpc'
+
+interface Transport {
+  request: (method: string, params?: Params) => Promise<unknown>,
+  notification: (method: string, params?: Params) => void
+}
 
 type RequestMap = Map<
   number,
@@ -18,10 +16,12 @@ type Options = {
   maxReconnectInterval: number;
 };
 
-abstract class ClientHandler extends RawClient {
+class ClientHandler implements Transport {
   private _requests: RequestMap = new Map();
   private _requestId = 0;
-  abstract _send(message: Message): void;
+  _send(message: Message): void {
+    console.log('should not be logged')
+  }
 
   protected _onmessage(message: Message): void {
     if (!message.id) return; // TODO: Handle error;
@@ -33,7 +33,7 @@ abstract class ClientHandler extends RawClient {
     else handler.resolve(response.result);
   }
 
-  _notification(method: string, params: Params): void {
+  notification(method: string, params?: Params): void {
     const request: Request = {
       jsonrpc: "2.0",
       method,
@@ -43,7 +43,8 @@ abstract class ClientHandler extends RawClient {
     this._send(request);
   }
 
-  _request(method: string, params: Params): Promise<unknown> {
+  request(method: string, params?: Params): Promise<unknown> {
+    console.log('request', { method, params }, 'this', this)
     const id: number = ++this._requestId;
     const request: Request = {
       jsonrpc: "2.0",
@@ -69,12 +70,13 @@ export class WebsocketClient extends ClientHandler {
     this._socket = new ReconnectingWebsocket(url, onmessage, options);
   }
   _send(message: Message): void {
+    console.log('send via socket', message)
     const serialized = JSON.stringify(message);
     this._socket.send(serialized);
   }
 }
 
-export class ReconnectingWebsocket {
+class ReconnectingWebsocket {
   socket!: WebSocket;
   ready!: Promise<void>;
   options: Options;

@@ -1,9 +1,20 @@
 import * as T from "./types.js"
 import * as RPC from "./jsonrpc.js"
-export abstract class RawClient {
-    abstract _notification(method: string, params?: RPC.Params): void;
-    abstract _request(method: string, params?: RPC.Params): Promise<unknown>;
-    public sum(params: T.SumParams): Promise<T.Usize> {
+
+type RequestMethod = (method: string, params?: RPC.Params) => Promise<unknown>;
+type NotificationMethod = (method: string, params?: RPC.Params) => void;
+interface Transport {
+  request: RequestMethod,
+  notification: NotificationMethod
+}
+
+export class RawClient {
+  private _request: RequestMethod;
+  private _notification: NotificationMethod;
+
+  constructor(transport: Transport) { this._request = transport.request.bind(transport); this._notification = transport.notification.bind(transport) }
+
+      public sum(params: T.SumParams): Promise<T.Usize> {
         return (this._request('sum', params as RPC.Params)) as Promise<T.Usize>;
     }
     public sum2(params: T.Sum2Params): Promise<T.Usize> {
@@ -24,4 +35,5 @@ export abstract class RawClient {
     public yell(message: string): Promise<string> {
         return (this._request('yell', [message] as RPC.Params)) as Promise<string>;
     }
+
 }
