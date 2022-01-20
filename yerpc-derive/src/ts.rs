@@ -13,7 +13,8 @@ pub(crate) fn generate_typescript_generator(info: &RpcInfo) -> TokenStream {
                     let ty = input.ty;
                     let name = input
                         .ident
-                        .map_or_else(|| format!("arg{}", i + 1), ToString::to_string);
+                        .map_or_else(|| format!("arg{}", i + 1), ToString::to_string)
+                        .to_case(Case::Camel);
                     gen_types.push(quote!(#ty));
                     gen_args.push(quote!((#name.to_string(), &<#ty as TypeDef>::INFO)))
                 }
@@ -24,7 +25,8 @@ pub(crate) fn generate_typescript_generator(info: &RpcInfo) -> TokenStream {
                 let ty = input.ty;
                 let name = input
                     .ident
-                    .map_or_else(|| "params".to_string(), ToString::to_string);
+                    .map_or_else(|| "params".to_string(), ToString::to_string)
+                    .to_case(Case::Camel);
                 gen_types.push(quote!(#ty));
                 gen_args.push(quote!((#name.to_string(), &<#ty as TypeDef>::INFO)));
                 (false, gen_args)
@@ -52,8 +54,8 @@ pub(crate) fn generate_typescript_generator(info: &RpcInfo) -> TokenStream {
     let outdir_path = info
         .attr_args
         .ts_outdir
-        .as_deref()
-        .unwrap_or("typescript/generated");
+        .clone()
+        .unwrap_or("typescript/generated".to_string());
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set");
     let outdir = std::path::PathBuf::from(&manifest_dir).join(&outdir_path);
     let outdir = outdir.to_str().unwrap();
