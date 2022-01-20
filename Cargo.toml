@@ -1,2 +1,2 @@
 [workspace]
-members = ["jsonrpc-derive", "jsonrpc", "jsonrpc-tide", "examples/webserver"]
+members = ["yerpc-derive", "yerpc", "yerpc-tide", "examples/webserver"]

@@ -1019,66 +1019,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "jsonrpc"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-channel",
- "async-mutex",
- "async-trait",
- "futures",
- "jsonrpc_derive",
- "log",
- "serde",
- "serde_json",
- "typescript-type-def",
-]
-
-[[package]]
-name = "jsonrpc-tide"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-std",
- "futures",
- "jsonrpc",
- "serde_json",
- "tide",
- "tide-websockets",
-]
-
-[[package]]
-name = "jsonrpc_derive"
-version = "0.1.0"
-dependencies = [
- "convert_case",
- "darling",
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
-name = "jsonrpc_example_webserver_tide"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-broadcast",
- "async-std",
- "async-trait",
- "env_logger",
- "futures",
- "jsonrpc",
- "jsonrpc-tide",
- "log",
- "serde",
- "serde_json",
- "tide",
- "tide-websockets",
- "typescript-type-def",
-]
-
-[[package]]
 name = "kv-log-macro"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2033,3 +1973,63 @@ name = "winapi-x86_64-pc-windows-gnu"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
+
+[[package]]
+name = "yerpc"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-channel",
+ "async-mutex",
+ "async-trait",
+ "futures",
+ "log",
+ "serde",
+ "serde_json",
+ "typescript-type-def",
+ "yerpc_derive",
+]
+
+[[package]]
+name = "yerpc-tide"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-std",
+ "futures",
+ "serde_json",
+ "tide",
+ "tide-websockets",
+ "yerpc",
+]
+
+[[package]]
+name = "yerpc_derive"
+version = "0.1.0"
+dependencies = [
+ "convert_case",
+ "darling",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "yerpc_example_webserver_tide"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-broadcast",
+ "async-std",
+ "async-trait",
+ "env_logger",
+ "futures",
+ "log",
+ "serde",
+ "serde_json",
+ "tide",
+ "tide-websockets",
+ "typescript-type-def",
+ "yerpc",
+ "yerpc-tide",
+]

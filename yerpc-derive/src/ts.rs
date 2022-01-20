@@ -65,8 +65,8 @@ pub(crate) fn generate_typescript_generator(info: &RpcInfo) -> TokenStream {
         #[cfg(test)]
         #[test]
         fn generate_ts_bindings() {
-            use ::jsonrpc::typescript::type_def::{TypeDef, type_expr::TypeInfo, DefinitionFileOptions};
-            use ::jsonrpc::typescript::{typedef_to_expr_string, export_types_to_file, Method};
+            use ::yerpc::typescript::type_def::{TypeDef, type_expr::TypeInfo, DefinitionFileOptions};
+            use ::yerpc::typescript::{typedef_to_expr_string, export_types_to_file, Method};
             use ::std::{fs, path::Path};
 
             // Create output directory.
@@ -79,7 +79,7 @@ pub(crate) fn generate_typescript_generator(info: &RpcInfo) -> TokenStream {
             struct __AllTyps(#(#gen_types),*);
             // Write typescript types to file.
             export_types_to_file::<__AllTyps>(&outdir.join("types.ts"), None).expect("Failed to write TS out");
-            export_types_to_file::<::jsonrpc::Message>(&outdir.join("jsonrpc.ts"), None).expect("Failed to write TS out");
+            export_types_to_file::<::yerpc::Message>(&outdir.join("jsonrpc.ts"), None).expect("Failed to write TS out");
 
             // // Generate a raw client.
             let root_namespace = Some("T");

@@ -1,7 +1,7 @@
 import { RawClient } from "./generated/client";
 import { Request } from "./generated/jsonrpc";
 import { ChatMessage } from "./generated/types";
-import { WebsocketClient } from "jsonrpc";
+import { WebsocketClient } from "yerpc";
 
 window.addEventListener("DOMContentLoaded", (_event) => {
   run();

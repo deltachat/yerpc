@@ -1,12 +1,12 @@
 use async_std::stream::StreamExt;
 use async_std::task;
-use jsonrpc::{MessageHandle, RpcHandle, RpcHandler};
+use yerpc::{MessageHandle, RpcHandle, RpcHandler};
 use std::future::Future;
 use std::sync::Arc;
 use tide::{Endpoint, Request};
 use tide_websockets::{Message as WsMessage, WebSocket};
 
-pub fn jsonrpc_handler<State, Sess, Fun, Fut>(handler: Fun) -> impl Endpoint<State>
+pub fn yerpc_handler<State, Sess, Fun, Fut>(handler: Fun) -> impl Endpoint<State>
 where
     State: Send + Sync + Clone + 'static,
     // Fun: Fn(State, RequestHandle) -> anyhow::Result<Sess> + Send + Sync + 'static,

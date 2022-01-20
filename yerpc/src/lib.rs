@@ -1,7 +1,7 @@
 pub use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
-pub use jsonrpc_derive::rpc;
+pub use yerpc_derive::rpc;
 mod version;
 pub use version::Version;
 

@@ -19,7 +19,7 @@ pub(crate) fn generate_rpc_impl(info: &RpcInfo) -> TokenStream {
                 quote!(
                     let params: Vec<serde_json::Value> = ::serde_json::from_value(params)?;
                     if params.len() != #n_inputs {
-                        return Err(::jsonrpc::Error::invalid_args_len(#n_inputs));
+                        return Err(::yerpc::Error::invalid_args_len(#n_inputs));
                     }
                     let mut params = params.into_iter();
                     let res = self.#ident(#(#inputs),*).await;
@@ -60,14 +60,14 @@ pub(crate) fn generate_rpc_impl(info: &RpcInfo) -> TokenStream {
     }
 
     let struc = &info.self_ty;
-    let crat = quote! { ::jsonrpc };
+    let crat = quote! { ::yerpc };
     let (impl_generics, _ty_generics, where_clause) = &info.generics.split_for_impl();
 
     // eprintln!("struc {:#?}", struc);
     // eprintln!("generics {:#?}", info.generics.split_for_impl());
     quote! {
         #[automatically_derived]
-        #[::jsonrpc::async_trait]
+        #[::yerpc::async_trait]
         impl #impl_generics #crat::RpcHandler for #struc #where_clause {
             async fn on_request(
                 &self,

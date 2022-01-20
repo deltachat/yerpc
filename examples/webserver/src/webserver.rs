@@ -5,9 +5,9 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tide::Request;
 
-use jsonrpc::typescript::TypeDef;
-use jsonrpc::{rpc, RpcHandle};
-use jsonrpc_tide::jsonrpc_handler;
+use yerpc::typescript::TypeDef;
+use yerpc::{rpc, RpcHandle};
+use yerpc_tide::yerpc_handler;
 
 mod emitter;
 use emitter::EventEmitter;
@@ -105,13 +105,13 @@ impl Session {
 #[rpc]
 impl Session {
     #[rpc(positional)]
-    pub async fn send(&self, message: ChatMessage) -> jsonrpc::Result<usize> {
+    pub async fn send(&self, message: ChatMessage) -> yerpc::Result<usize> {
         let res = self.state.post(self.peer_addr.clone(), message).await?;
         Ok(res)
     }
 
     #[rpc(positional)]
-    pub async fn list(&self) -> jsonrpc::Result<Vec<ChatMessage>> {
+    pub async fn list(&self) -> yerpc::Result<Vec<ChatMessage>> {
         let list = self.state.list().await;
         Ok(list)
     }
@@ -124,7 +124,7 @@ async fn main() -> Result<(), std::io::Error> {
     let mut app = tide::with_state(state);
 
     app.at("/ws")
-        .get(jsonrpc_handler(|req: Request<State>, rpc| async move {
+        .get(yerpc_handler(|req: Request<State>, rpc| async move {
             Ok(Session::new(req.remote(), req.state().clone(), rpc))
         }));
     app.listen("127.0.0.1:20808").await?;
