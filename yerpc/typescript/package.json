@@ -1,9 +1,13 @@
 {
   "name": "yerpc",
-  "type":"module",
-  "version":"0.1.0",
-  "main":"./dist/client.js",
+  "type": "module",
+  "version": "0.1.0",
+  "main": "./dist/client.js",
   "scripts": {
     "build": "tsc"
+  },
+  "dependencies": {
+    "@types/ws": "^8.2.2",
+    "isomorphic-ws": "^4.0.1"
   }
 }

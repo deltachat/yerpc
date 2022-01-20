@@ -1,3 +1,5 @@
+import WebSocket from 'isomorphic-ws'
+import type { MessageEvent } from 'ws'
 import { Request, Response, Message, Error, Params } from './jsonrpc'
 
 interface Transport {
