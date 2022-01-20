@@ -8,6 +8,6 @@
     "start": "yarn build && http-server"
   },
   "dependencies": {
-    "yerpc": "file:../../../yerpc/typescript"
+    "yerpc": "file:../../.."
   }
 }

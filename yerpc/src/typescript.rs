@@ -87,12 +87,12 @@ impl Method {
             |output| type_to_expr(&output, &root_namespace),
         );
         let (output, inner_method) = if !self.is_notification {
-            (format!("Promise<{}>", output), "_request")
+            (format!("Promise<{}>", output), "request")
         } else {
-            (output, "_notification")
+            (output, "notification")
         };
         format!(
-            "    public {}({}): {} {{\n        return (this.{}('{}', {} as RPC.Params)) as {};\n    }}\n",
+            "  public {}({}): {} {{\n    return (this._transport.{}('{}', {} as RPC.Params)) as {};\n  }}\n",
             self.ts_name, args, output, inner_method, self.rpc_name, call, output
         )
     }
