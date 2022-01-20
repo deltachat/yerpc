@@ -7,6 +7,8 @@ pub use version::Version;
 
 pub mod typescript;
 use typescript::TypeDef;
+mod requests;
+pub use requests::*;
 
 pub type Id = u32;
 pub type Result<T> = std::result::Result<T, Error>;
@@ -117,6 +119,9 @@ impl Error {
     pub const INVALID_PARAMS: i32 = -32602;
     pub const INTERNAL_ERROR: i32 = -32603;
 
+    pub const BAD_RESPONSE: i32 = -32001;
+    pub const BAD_REQUEST: i32 = -32000;
+
     pub fn new(code: i32, message: impl ToString) -> Self {
         Self {
             code,
@@ -147,6 +152,13 @@ impl Error {
             format!("This method takes an array of {} arguments", n),
         )
     }
+
+    pub fn bad_response() -> Self {
+        Self::new(Error::BAD_RESPONSE, "Error while processing a response")
+    }
+    pub fn bad_request() -> Self {
+        Self::new(Error::BAD_REQUEST, "Error while serializing a request")
+    }
 }
 
 impl From<serde_json::Error> for Error {
@@ -161,7 +173,7 @@ impl From<serde_json::Error> for Error {
 
 #[cfg(feature = "anyhow")]
 impl From<anyhow::Error> for Error {
-    fn from(error: anyhow::Error) -> Self {
+    fn from(_error: anyhow::Error) -> Self {
         Self {
             code: Error::INTERNAL_ERROR,
             message: "Internal server error".to_string(),

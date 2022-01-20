@@ -16,14 +16,22 @@ type Options = {
   maxReconnectInterval: number;
 };
 
-class ClientHandler implements Transport {
+// type RequestEvent = MessageEvent<Request>;
+
+abstract class ClientHandler extends EventTarget implements Transport {
   private _requests: RequestMap = new Map();
   private _requestId = 0;
-  _send(message: Message): void {
-    console.log('should not be logged')
+  _send(_message: Message): void {
+    throw new Error("_send method not implemented")
   }
 
   protected _onmessage(message: Message): void {
+    if ((message as Request).method) {
+      const request = message as Request;
+      const event = new MessageEvent("request", { data: request });
+      this.dispatchEvent(event);
+    }
+
     if (!message.id) return; // TODO: Handle error;
     const response = message as Response;
     if (!response.id) return; // TODO: Handle error.
@@ -44,7 +52,7 @@ class ClientHandler implements Transport {
   }
 
   request(method: string, params?: Params): Promise<unknown> {
-    console.log('request', { method, params }, 'this', this)
+    // console.log('request', { method, params }, 'this', this)
     const id: number = ++this._requestId;
     const request: Request = {
       jsonrpc: "2.0",
@@ -64,13 +72,12 @@ export class WebsocketClient extends ClientHandler {
   constructor(public url: string, options?: Options) {
     super();
     const onmessage = (event: MessageEvent) => {
-      const response: Response = JSON.parse(event.data as string);
-      this._onmessage(response);
+      const message: Message = JSON.parse(event.data as string);
+      this._onmessage(message);
     };
     this._socket = new ReconnectingWebsocket(url, onmessage, options);
   }
   _send(message: Message): void {
-    console.log('send via socket', message)
     const serialized = JSON.stringify(message);
     this._socket.send(serialized);
   }

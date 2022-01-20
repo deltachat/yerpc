@@ -9,7 +9,7 @@ pub fn typedef_to_expr_string<T: TypeDef>(root_namespace: &Option<&str>) -> io::
     let mut options = DefinitionFileOptions::default();
     options.root_namespace = root_namespace.as_deref();
     let mut expr = vec![];
-    <T as TypeDef>::INFO.emit_expr(&mut expr, &options)?;
+    <T as TypeDef>::INFO.emit_expr(&mut expr, options)?;
     Ok(String::from_utf8(expr).unwrap())
 }
 
@@ -56,7 +56,6 @@ impl Method {
     }
 
     pub fn to_string(&self, root_namespace: &Option<&str>) -> String {
-        // let maybe_async = if !self.is_notification { "async " } else { "" };
         let (args, call) = if !self.is_positional {
             if let Some((name, ty)) = self.args.get(0) {
                 (
@@ -66,12 +65,6 @@ impl Method {
             } else {
                 ("".to_string(), "undefined".to_string())
             }
-            // let arg = self.args.get(0).map_or_else(
-            //     || "void".to_string(),
-            //     |(_name, arg)| type_to_expr(arg, &root_namespace),
-            // );
-            // let args = format!("{}: {}", "params", arg);
-            // (args, "params".to_string())
         } else {
             let args = self
                 .args
@@ -109,6 +102,6 @@ fn type_to_expr(ty: &'static TypeInfo, root_namespace: &Option<&str>) -> String 
     let mut options = DefinitionFileOptions::default();
     options.root_namespace = root_namespace.as_deref();
     let mut expr = vec![];
-    ty.emit_expr(&mut expr, &options).unwrap();
+    ty.emit_expr(&mut expr, options).unwrap();
     String::from_utf8(expr).unwrap()
 }

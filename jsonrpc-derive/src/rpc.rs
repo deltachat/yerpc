@@ -61,10 +61,14 @@ pub(crate) fn generate_rpc_impl(info: &RpcInfo) -> TokenStream {
 
     let struc = &info.self_ty;
     let crat = quote! { ::jsonrpc };
+    let (impl_generics, _ty_generics, where_clause) = &info.generics.split_for_impl();
 
+    // eprintln!("struc {:#?}", struc);
+    // eprintln!("generics {:#?}", info.generics.split_for_impl());
     quote! {
+        #[automatically_derived]
         #[::jsonrpc::async_trait]
-        impl #crat::RpcHandler for #struc {
+        impl #impl_generics #crat::RpcHandler for #struc #where_clause {
             async fn on_request(
                 &self,
                 method: String,

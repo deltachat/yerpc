@@ -13,3 +13,6 @@ serde_json = "1.0.74"
 log = "0.4.14"
 typescript-type-def = { git = "https://github.com/Frando/rust-typescript-type-def.git", branch = "delta", features = ["json_value"] }
 anyhow = { version = "1.0.52", optional = true }
+futures = "0.3.19"
+async-channel = "1.6.1"
+async-mutex = "1.4.0"

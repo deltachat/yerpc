@@ -14,26 +14,11 @@ export class RawClient {
 
   constructor(transport: Transport) { this._request = transport.request.bind(transport); this._notification = transport.notification.bind(transport) }
 
-      public sum(params: T.SumParams): Promise<T.Usize> {
-        return (this._request('sum', params as RPC.Params)) as Promise<T.Usize>;
+      public send(message: T.ChatMessage): Promise<T.Usize> {
+        return (this._request('send', [message] as RPC.Params)) as Promise<T.Usize>;
     }
-    public sum2(params: T.Sum2Params): Promise<T.Usize> {
-        return (this._request('sum2', params as RPC.Params)) as Promise<T.Usize>;
-    }
-    public square(num: [T.F32]): Promise<T.F32> {
-        return (this._request('square', num as RPC.Params)) as Promise<T.F32>;
-    }
-    public nothing(): Promise<null> {
-        return (this._request('nothing', [] as RPC.Params)) as Promise<null>;
-    }
-    public manyArgs(a: T.Usize, b: (string)[]): Promise<null> {
-        return (this._request('many_args', [a, b] as RPC.Params)) as Promise<null>;
-    }
-    public onevent(ev: unknown): void {
-        return (this._notification('onevent', ev as RPC.Params)) as void;
-    }
-    public yell(message: string): Promise<string> {
-        return (this._request('yell', [message] as RPC.Params)) as Promise<string>;
+    public list(): Promise<(T.ChatMessage)[]> {
+        return (this._request('list', [] as RPC.Params)) as Promise<(T.ChatMessage)[]>;
     }
 
 }

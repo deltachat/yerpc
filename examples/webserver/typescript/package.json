@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
+  "scripts": {
+    "build": "yarn upgrade jsonrpc && tsc && esbuild --bundle dist/example.js --outfile=dist/example.bundle.js"
+  },
   "dependencies": {
     "jsonrpc": "file:../../../jsonrpc/typescript"
   }

@@ -1,14 +1,16 @@
 use super::MethodAttrArgs;
 use darling::FromAttributes;
 // use proc_macro2::Ident;
-use syn::{FnArg, Ident, ImplItem, ImplItemMethod, ItemImpl, Pat, ReturnType, Type};
+use syn::{FnArg, Generics, Ident, ImplItem, ImplItemMethod, ItemImpl, Pat, ReturnType, Type};
 
 use crate::RootAttrArgs;
 
+#[derive(Debug)]
 pub(crate) struct RpcInfo<'s> {
     pub self_ty: &'s Type,
     pub attr_args: &'s RootAttrArgs,
     pub methods: Vec<RemoteProcedure<'s>>,
+    pub generics: &'s Generics,
 }
 
 impl<'s> RpcInfo<'s> {
@@ -24,11 +26,11 @@ impl<'s> RpcInfo<'s> {
                 }
             })
             .collect();
-        let self_ty = &input.self_ty;
         Self {
             attr_args,
-            self_ty,
             methods,
+            self_ty: &input.self_ty,
+            generics: &input.generics,
         }
     }
 }

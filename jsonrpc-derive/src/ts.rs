@@ -83,10 +83,9 @@ pub(crate) fn generate_typescript_generator(info: &RpcInfo) -> TokenStream {
 
             // // Generate a raw client.
             let root_namespace = Some("T");
-            let ts_module = #ts_base;
             let mut out = String::new();
             #(#gen_methods)*
-            let ts_module = ts_module.replace("#methods", &out);
+            let ts_module = #ts_base.replace("#methods", &out);
             fs::write(&outdir.join("client.ts"), &ts_module).expect("Failed to write TS bindings");
         }
     }

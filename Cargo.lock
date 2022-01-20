@@ -94,6 +94,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "async-broadcast"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "90622698a1218e0b2fb846c97b5f19a0831f6baddee73d9454156365ccfa473b"
+dependencies = [
+ "easy-parallel",
+ "event-listener",
+ "futures-core",
+]
+
+[[package]]
 name = "async-channel"
 version = "1.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -615,24 +626,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "deltachat_jsonrpc"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-std",
- "async-trait",
- "env_logger",
- "futures",
- "jsonrpc",
- "log",
- "serde",
- "serde_json",
- "tide",
- "tide-websockets",
- "typescript-type-def",
-]
-
-[[package]]
 name = "digest"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -646,6 +639,12 @@ name = "discard"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "212d0f5754cb6769937f4501cc0e67f4f4483c8d2c3e1e922ee9edbe4ab4c7c0"
+
+[[package]]
+name = "easy-parallel"
+version = "3.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6907e25393cdcc1f4f3f513d9aac1e840eb1cc341a0fccb01171f7d14d10b946"
 
 [[package]]
 name = "env_logger"
@@ -1024,12 +1023,28 @@ name = "jsonrpc"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-channel",
+ "async-mutex",
  "async-trait",
+ "futures",
  "jsonrpc_derive",
  "log",
  "serde",
  "serde_json",
  "typescript-type-def",
+]
+
+[[package]]
+name = "jsonrpc-tide"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-std",
+ "futures",
+ "jsonrpc",
+ "serde_json",
+ "tide",
+ "tide-websockets",
 ]
 
 [[package]]
@@ -1041,6 +1056,26 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "jsonrpc_example_webserver_tide"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-broadcast",
+ "async-std",
+ "async-trait",
+ "env_logger",
+ "futures",
+ "jsonrpc",
+ "jsonrpc-tide",
+ "log",
+ "serde",
+ "serde_json",
+ "tide",
+ "tide-websockets",
+ "typescript-type-def",
 ]
 
 [[package]]
@@ -1411,9 +1446,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.74"
+version = "1.0.75"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ee2bb9cd061c5865d345bb02ca49fcef1391741b672b54a0bf7b679badec3142"
+checksum = "c059c05b48c5c0067d4b4b2b4f0732dd65feb52daf7e0ea09cd87e7dadc1af79"
 dependencies = [
  "itoa",
  "ryu",
@@ -1777,7 +1812,7 @@ checksum = "dcf81ac59edc17cc8697ff311e8f5ef2d99fcbd9817b34cec66f90b6c3dfd987"
 [[package]]
 name = "typescript-type-def"
 version = "0.3.1"
-source = "git+https://github.com/Frando/rust-typescript-type-def.git?branch=delta#c555458b323dcc955d05701c63fcdb6cfaae5a40"
+source = "git+https://github.com/Frando/rust-typescript-type-def.git?branch=delta#c041e3b9b7d11714a58851a8937360ec6ee708b7"
 dependencies = [
  "serde_json",
  "typescript-type-def-derive",
@@ -1786,7 +1821,7 @@ dependencies = [
 [[package]]
 name = "typescript-type-def-derive"
 version = "0.3.1"
-source = "git+https://github.com/Frando/rust-typescript-type-def.git?branch=delta#c555458b323dcc955d05701c63fcdb6cfaae5a40"
+source = "git+https://github.com/Frando/rust-typescript-type-def.git?branch=delta#c041e3b9b7d11714a58851a8937360ec6ee708b7"
 dependencies = [
  "darling",
  "ident_case",

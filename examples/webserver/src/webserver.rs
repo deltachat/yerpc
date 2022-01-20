@@ -1,128 +1,132 @@
-use async_std::prelude::*;
-use async_trait::async_trait;
-use serde::Deserialize;
-
+use async_std::sync::RwLock;
+use async_std::task;
+use futures::stream::StreamExt;
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tide::Request;
-use tide_websockets::{Message, WebSocket};
 
 use jsonrpc::typescript::TypeDef;
-use jsonrpc::{rpc, RpcHandler};
+use jsonrpc::{rpc, RpcHandle};
+use jsonrpc_tide::jsonrpc_handler;
 
-struct State {
-    foo: usize,
+mod emitter;
+use emitter::EventEmitter;
+
+#[derive(Serialize, Deserialize, TypeDef, Clone, Debug)]
+struct User {
+    name: String,
+    color: String,
 }
+
+#[derive(Serialize, Deserialize, TypeDef, Clone, Debug)]
+struct ChatMessage {
+    content: String,
+    user: User,
+}
+
+#[derive(Serialize, Deserialize, TypeDef, Clone, Debug)]
+#[serde(tag = "type")]
+enum Event {
+    Message(ChatMessage),
+    Joined(User),
+}
+
+#[derive(Clone)]
+struct State {
+    messages: Arc<RwLock<Vec<ChatMessage>>>,
+    events: Arc<EventEmitter<(String, ChatMessage)>>,
+}
+
 impl State {
     pub fn new() -> Self {
-        Self { foo: 0 }
+        Self {
+            messages: Default::default(),
+            events: Arc::new(EventEmitter::new(10)),
+        }
+    }
+
+    pub async fn post(&self, peer_addr: String, message: ChatMessage) -> anyhow::Result<usize> {
+        let len = {
+            let mut messages = self.messages.write().await;
+            messages.push(message.clone());
+            messages.len()
+        };
+        self.events.emit((peer_addr, message)).await?;
+        Ok(len)
+    }
+
+    pub async fn list(&self) -> Vec<ChatMessage> {
+        self.messages.read().await.clone()
+    }
+
+    pub async fn subscribe(&self) -> async_broadcast::Receiver<(String, ChatMessage)> {
+        self.events.subscribe()
     }
 }
 
+#[derive(Clone)]
 struct Session {
-    state: Arc<State>,
+    peer_addr: String,
+    state: State,
+    client: RpcHandle,
 }
 impl Session {
-    pub fn new(state: Arc<State>) -> Self {
-        Self { state }
+    pub fn new(peer_addr: Option<&str>, state: State, client: RpcHandle) -> Self {
+        let peer_addr = peer_addr.map(|addr| addr.to_string()).unwrap_or_default();
+        let this = Self {
+            peer_addr,
+            state,
+            client,
+        };
+        this.spawn_event_loop();
+        this
+    }
+
+    fn spawn_event_loop(&self) {
+        let this = self.clone();
+        task::spawn(async move {
+            let mut message_events = this.state.subscribe().await;
+            while let Some((_peer_addr, ev)) = message_events.next().await {
+                // Optionally: This would be how to filter out messages that were emitted by ourselves.
+                // if peer_addr != this.peer_addr {
+                let res = this
+                    .client
+                    .notify("onevent", Some(Event::Message(ev)))
+                    .await;
+                if res.is_err() {
+                    break;
+                }
+                // }
+            }
+        });
     }
 }
-
-#[async_trait]
-impl RpcHandler for Session {
-    async fn on_notification(
-        &self,
-        method: String,
-        params: serde_json::Value,
-    ) -> Result<(), jsonrpc::Error> {
-        RpcApi.on_notification(method, params).await
-    }
-    async fn on_request(
-        &self,
-        method: String,
-        params: serde_json::Value,
-    ) -> Result<serde_json::Value, jsonrpc::Error> {
-        RpcApi.on_request(method, params).await
-        // Err(Error::new(Error::METHOD_NOT_FOUND, "Method not found"))
-    }
-}
-
-#[derive(Deserialize, Debug, TypeDef)]
-struct SumParams {
-    a: usize,
-    b: usize,
-}
-
-#[derive(Deserialize, Debug, TypeDef)]
-struct Sum2Params(usize, usize);
-
-struct RpcApi;
 
 #[rpc]
-impl RpcApi {
-    pub async fn sum(&self, SumParams { a, b }: SumParams) -> jsonrpc::Result<usize> {
-        Ok(a + b)
-    }
-
-    pub async fn sum2(&self, Sum2Params(a, b): Sum2Params) -> jsonrpc::Result<usize> {
-        Ok(a + b)
-    }
-
-    pub async fn square(&self, num: (f32,)) -> jsonrpc::Result<f32> {
-        Ok(num.0 * num.0)
+impl Session {
+    #[rpc(positional)]
+    pub async fn send(&self, message: ChatMessage) -> jsonrpc::Result<usize> {
+        let res = self.state.post(self.peer_addr.clone(), message).await?;
+        Ok(res)
     }
 
     #[rpc(positional)]
-    pub async fn nothing(&self) -> jsonrpc::Result<()> {
-        Ok(())
-    }
-
-    #[rpc(positional)]
-    pub async fn many_args(&self, a: usize, b: Vec<String>) -> jsonrpc::Result<()> {
-        eprintln!("called with {} and {:?}", a, b);
-        Ok(())
-    }
-
-    #[rpc(notification)]
-    pub async fn onevent(&self, ev: serde_json::Value) -> jsonrpc::Result<()> {
-        eprintln!("notif: {:?}", ev);
-        Ok(())
-    }
-
-    #[rpc(name = "yell", positional)]
-    pub async fn shout(&self, message: String) -> jsonrpc::Result<String> {
-        Ok(message.to_uppercase())
+    pub async fn list(&self) -> jsonrpc::Result<Vec<ChatMessage>> {
+        let list = self.state.list().await;
+        Ok(list)
     }
 }
 
 #[async_std::main]
 async fn main() -> Result<(), std::io::Error> {
     env_logger::init();
-    let state = Arc::new(State::new());
+    let state = State::new();
     let mut app = tide::with_state(state);
 
-    app.at("/ws").get(WebSocket::new(
-        |request: Request<Arc<State>>, mut stream| async move {
-            let session = Session::new(request.state().clone());
-            stream
-                .send_json(&jsonrpc::Request {
-                    jsonrpc: jsonrpc::Version::V2,
-                    params: Some(jsonrpc::Params::Positional(vec![serde_json::to_value(
-                        "hello",
-                    )
-                    .unwrap()])),
-                    method: "sum2".to_string(),
-                    id: Some(1),
-                })
-                .await?;
-            while let Some(Ok(Message::Text(input))) = stream.next().await {
-                if let Some(res) = jsonrpc::handle_message(&session, &input).await {
-                    stream.send(Message::Text(res)).await?;
-                }
-            }
-            Ok(())
-        },
-    ));
-
+    app.at("/ws")
+        .get(jsonrpc_handler(|req: Request<State>, rpc| async move {
+            Ok(Session::new(req.remote(), req.state().clone(), rpc))
+        }));
     app.listen("127.0.0.1:20808").await?;
 
     Ok(())

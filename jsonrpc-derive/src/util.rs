@@ -1,6 +1,4 @@
-use convert_case::{Case, Casing};
-use proc_macro2::Span;
-use syn::{GenericArgument, Ident, PathArguments, Type};
+use syn::{GenericArgument, PathArguments, Type};
 
 pub fn is_result_ty(ty: &Type) -> bool {
     if let Type::Path(path) = ty {
