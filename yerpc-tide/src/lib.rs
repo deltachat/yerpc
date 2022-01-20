@@ -1,11 +1,16 @@
 use async_std::stream::StreamExt;
 use async_std::task;
-use yerpc::{MessageHandle, RpcHandle, RpcHandler};
 use std::future::Future;
 use std::sync::Arc;
 use tide::{Endpoint, Request};
 use tide_websockets::{Message as WsMessage, WebSocket};
+use yerpc::{MessageHandle, RpcHandle, RpcHandler};
 
+/// A Tide endpoint for a JSON-RPC 2.0 websocket.
+///
+/// The `handler` closure has to return a type that implements [yerpc::RpcHandler].
+/// Either implement that manually or use `yerpc_derive::rpc`.
+/// See the [webserver example](../../examples/webserver) for a usage example.
 pub fn yerpc_handler<State, Sess, Fun, Fut>(handler: Fun) -> impl Endpoint<State>
 where
     State: Send + Sync + Clone + 'static,
