@@ -63,8 +63,6 @@ pub(crate) fn generate_rpc_impl(info: &RpcInfo) -> TokenStream {
     let crat = quote! { ::yerpc };
     let (impl_generics, _ty_generics, where_clause) = &info.generics.split_for_impl();
 
-    // eprintln!("struc {:#?}", struc);
-    // eprintln!("generics {:#?}", info.generics.split_for_impl());
     quote! {
         #[automatically_derived]
         #[::yerpc::async_trait]

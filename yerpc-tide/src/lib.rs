@@ -14,7 +14,6 @@ use yerpc::{MessageHandle, RpcHandle, RpcHandler};
 pub fn yerpc_handler<State, Sess, Fun, Fut>(handler: Fun) -> impl Endpoint<State>
 where
     State: Send + Sync + Clone + 'static,
-    // Fun: Fn(State, RequestHandle) -> anyhow::Result<Sess> + Send + Sync + 'static,
     Fun: Fn(Request<State>, RpcHandle) -> Fut + Sync + Send + 'static,
     Fut: Future<Output = anyhow::Result<Sess>> + Send + 'static,
     Sess: RpcHandler,
@@ -30,8 +29,8 @@ where
                 let stream = stream.clone();
                 async move {
                     while let Some(message) = rx.next().await {
-                        // eprintln!("SEND OUT {:?}", message);
                         let message = serde_json::to_string(&message)?;
+                        // Abort on error.
                         stream.send(WsMessage::Text(message)).await?;
                     }
                     let res: Result<(), anyhow::Error> = Ok(());
@@ -39,7 +38,6 @@ where
                 }
             });
             while let Some(Ok(WsMessage::Text(input))) = stream.next().await {
-                // eprintln!("RECV IN {:?}", input);
                 handle.handle_message(&input).await;
             }
             Ok(())

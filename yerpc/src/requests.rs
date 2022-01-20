@@ -16,7 +16,8 @@ impl<T: RpcHandler> MessageHandle<T> {
         let message: Message = match serde_json::from_str(input) {
             Ok(message) => message,
             Err(err) => {
-                self.requests
+                let _ = self
+                    .requests
                     .tx(Message::Response(Response::error(
                         None,
                         Error::new(Error::PARSE_ERROR, err),
@@ -42,7 +43,7 @@ impl<T: RpcHandler> MessageHandle<T> {
                     },
                 };
                 if let Some(response) = response {
-                    self.requests.tx(Message::Response(response)).await;
+                    let _ = self.requests.tx(Message::Response(response)).await;
                 }
             }
             Message::Response(response) => {
@@ -83,11 +84,11 @@ impl RpcHandle {
         &self,
         method: impl ToString,
         params: Option<impl Serialize>,
-    ) -> Result<serde_json::Value, crate::Error> {
+    ) -> Result<serde_json::Value, Error> {
         let method = method.to_string();
         let params = downcast_params(params)?;
         let (message, rx) = self.inner.lock().await.request(method, params);
-        self.tx(message).await;
+        self.tx(message).await?;
         // Wait for response to arrive.
         // TODO: Better error.
         let res = rx.await.map_err(|_| Error::bad_response())?;
@@ -113,12 +114,16 @@ impl RpcHandle {
             id: None,
         };
         let message = Message::Request(request);
-        self.tx(message).await;
+        self.tx(message).await?;
         Ok(())
     }
 
-    pub(crate) async fn tx(&self, message: Message) {
-        let _ = self.tx.send(message).await;
+    pub(crate) async fn tx(&self, message: Message) -> Result<(), Error> {
+        self.tx
+            .send(message)
+            .await
+            .map_err(|_| Error::remote_disconnected())?;
+        Ok(())
     }
 
     pub async fn on_response(&self, response: Response) {

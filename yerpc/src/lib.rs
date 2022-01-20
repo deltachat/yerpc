@@ -134,8 +134,9 @@ impl Error {
     pub const INVALID_PARAMS: i32 = -32602;
     pub const INTERNAL_ERROR: i32 = -32603;
 
-    pub const BAD_RESPONSE: i32 = -32001;
     pub const BAD_REQUEST: i32 = -32000;
+    pub const BAD_RESPONSE: i32 = -32001;
+    pub const REMOTE_DISCONNECTED: i32 = -32002;
 
     pub fn new(code: i32, message: impl ToString) -> Self {
         Self {
@@ -173,6 +174,13 @@ impl Error {
     }
     pub fn bad_request() -> Self {
         Self::new(Error::BAD_REQUEST, "Error while serializing a request")
+    }
+    pub fn remote_disconnected() -> Self {
+        Self::new(Error::REMOTE_DISCONNECTED, "Remote disconnected")
+    }
+
+    pub fn is_disconnnected(&self) -> bool {
+        self.code == Error::REMOTE_DISCONNECTED
     }
 }
 

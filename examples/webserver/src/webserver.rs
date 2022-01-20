@@ -78,6 +78,7 @@ impl Session {
             state,
             client,
         };
+        log::info!("Client connected: {}", this.peer_addr);
         this.spawn_event_loop();
         this
     }

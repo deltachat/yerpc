@@ -1,1 +1,9 @@
-{"type":"module","main":"./dist/client.js","version":"0.1.0"}
+{
+  "name": "yerpc",
+  "type":"module",
+  "version":"0.1.0",
+  "main":"./dist/client.js",
+  "scripts": {
+    "build": "tsc"
+  }
+}

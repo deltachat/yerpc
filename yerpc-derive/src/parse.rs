@@ -77,7 +77,6 @@ impl<'s> RemoteProcedure<'s> {
             ReturnType::Type(_, ref ty) => Some(ty.as_ref()),
         };
         let positional = root_attr_args.all_positional || args.positional;
-        // eprintln!("sig {:#?}", method.sig);
         let mut inputs_iter = method.sig.inputs.iter();
         let input = if positional {
             let inputs = inputs_iter.filter_map(Input::from_arg);

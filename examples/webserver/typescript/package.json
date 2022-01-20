@@ -4,7 +4,8 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "build": "yarn upgrade yerpc && tsc && esbuild --bundle dist/example.js --outfile=dist/example.bundle.js"
+    "build": "yarn upgrade yerpc && tsc && esbuild --bundle dist/example.js --outfile=dist/example.bundle.js",
+    "start": "yarn build && http-server"
   },
   "dependencies": {
     "yerpc": "file:../../../yerpc/typescript"
