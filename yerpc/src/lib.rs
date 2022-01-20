@@ -2,13 +2,28 @@ pub use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
 pub use yerpc_derive::rpc;
+
+mod requests;
+pub mod typescript;
 mod version;
+
+pub use requests::*;
+use typescript::TypeDef;
 pub use version::Version;
 
-pub mod typescript;
-use typescript::TypeDef;
-mod requests;
-pub use requests::*;
+#[async_trait]
+pub trait RpcHandler: Sync + Send + 'static {
+    async fn on_notification(&self, _method: String, _params: serde_json::Value) -> Result<()> {
+        Ok(())
+    }
+    async fn on_request(
+        &self,
+        _method: String,
+        _params: serde_json::Value,
+    ) -> Result<serde_json::Value> {
+        Err(Error::new(Error::METHOD_NOT_FOUND, "Method not found"))
+    }
+}
 
 pub type Id = u32;
 pub type Result<T> = std::result::Result<T, Error>;
@@ -179,71 +194,5 @@ impl From<anyhow::Error> for Error {
             message: "Internal server error".to_string(),
             data: None,
         }
-    }
-}
-
-#[async_trait]
-pub trait RpcHandler: Sync + Send + 'static {
-    async fn on_notification(&self, _method: String, _params: serde_json::Value) -> Result<()> {
-        Ok(())
-    }
-    async fn on_request(
-        &self,
-        _method: String,
-        _params: serde_json::Value,
-    ) -> Result<serde_json::Value> {
-        Err(Error::new(Error::METHOD_NOT_FOUND, "Method not found"))
-    }
-}
-
-pub async fn handle_message<T: RpcHandler>(session: &T, input: &str) -> Option<String> {
-    let message: Message = match serde_json::from_str(input) {
-        Ok(message) => message,
-        Err(err) => {
-            return Some(
-                serde_json::to_string(&Response::error(None, Error::new(Error::PARSE_ERROR, err)))
-                    .unwrap(),
-            )
-        }
-    };
-
-    let response = match message {
-        Message::Request(request) => {
-            let params = request.params.map(Params::into_value).unwrap_or_default();
-            match request.id {
-                None | Some(0) => match session.on_notification(request.method, params).await {
-                    Ok(()) => None,
-                    Err(err) => Some(Response::error(request.id, err)),
-                },
-                Some(id) => match session.on_request(request.method, params).await {
-                    Ok(payload) => Some(Response::success(id, payload)),
-                    Err(err) => Some(Response::error(Some(id), err)),
-                },
-            }
-        }
-        Message::Response(_response) => Some(Response::error(
-            None,
-            Error::new(
-                Error::INVALID_REQUEST,
-                "Receiving responses is unsupported.",
-            ),
-        )),
-    };
-
-    match response {
-        None => None,
-        Some(response) => match serde_json::to_string(&response) {
-            Ok(string) => Some(string),
-            Err(err) => {
-                log::error!("Failed to serialize response {}", err);
-                Some(
-                    serde_json::to_string(&Response::error(
-                        response.id,
-                        Error::new(Error::INTERNAL_ERROR, "Failed to serialize response"),
-                    ))
-                    .expect("Serialization failure"),
-                )
-            }
-        },
     }
 }
