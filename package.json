@@ -3,6 +3,9 @@
   "type": "module",
   "version": "0.1.0",
   "main": "./typescript/dist/client.js",
+  "files": [
+    "typescript/**"
+  ],
   "scripts": {
     "build": "tsc -p ./typescript"
   },
