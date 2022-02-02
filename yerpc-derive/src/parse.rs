@@ -20,7 +20,7 @@ impl<'s> RpcInfo<'s> {
             .iter()
             .filter_map(|item| {
                 if let ImplItem::Method(method) = item {
-                    Some(RemoteProcedure::from_method(&attr_args, method))
+                    Some(RemoteProcedure::from_method(attr_args, method))
                 } else {
                     None
                 }
@@ -96,9 +96,9 @@ impl<'s> RemoteProcedure<'s> {
 }
 
 fn ident_from_pat(pat: &Pat) -> Option<&Ident> {
-    let res = match pat {
+    
+    match pat {
         Pat::Ident(pat_ident) => Some(&pat_ident.ident),
         _ => None,
-    };
-    res
+    }
 }

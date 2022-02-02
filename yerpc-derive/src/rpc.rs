@@ -35,7 +35,7 @@ pub(crate) fn generate_rpc_impl(info: &RpcInfo) -> TokenStream {
         };
 
         let unwrap_output = match &method.output {
-            Some(output) if is_result_ty(&output) => quote!(let res = res?;),
+            Some(output) if is_result_ty(output) => quote!(let res = res?;),
             _ => quote!(),
         };
 

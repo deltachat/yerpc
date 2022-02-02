@@ -23,7 +23,7 @@ pub fn export_types_to_file<T: TypeDef>(
         options
     });
     let mut file = std::fs::File::create(&path)?;
-    write_definition_file::<_, T>(&mut file, options.clone())?;
+    write_definition_file::<_, T>(&mut file, options)?;
     Ok(())
 }
 
@@ -59,7 +59,7 @@ impl Method {
         let (args, call) = if !self.is_positional {
             if let Some((name, ty)) = self.args.get(0) {
                 (
-                    format!("{}: {}", name, type_to_expr(ty, &root_namespace)),
+                    format!("{}: {}", name, type_to_expr(ty, root_namespace)),
                     name.to_string(),
                 )
             } else {
@@ -69,7 +69,7 @@ impl Method {
             let args = self
                 .args
                 .iter()
-                .map(|(name, arg)| format!("{}: {}", name, type_to_expr(&arg, &root_namespace)))
+                .map(|(name, arg)| format!("{}: {}", name, type_to_expr(arg, root_namespace)))
                 .collect::<Vec<String>>()
                 .join(", ");
             let call = format!(
@@ -84,7 +84,7 @@ impl Method {
         };
         let output = self.output.map_or_else(
             || "void".to_string(),
-            |output| type_to_expr(&output, &root_namespace),
+            |output| type_to_expr(output, root_namespace),
         );
         let (output, inner_method) = if !self.is_notification {
             (format!("Promise<{}>", output), "request")

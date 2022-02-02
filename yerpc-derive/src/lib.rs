@@ -22,7 +22,7 @@ pub fn rpc(attr: TokenStream, tokens: TokenStream) -> TokenStream {
                 Ok(args) => args,
                 Err(err) => return err.write_errors().into(),
             };
-            let info = RpcInfo::from_impl(&attr_args, &input);
+            let info = RpcInfo::from_impl(&attr_args, input);
             let ts_impl = generate_typescript_generator(&info);
             let rpc_impl = generate_rpc_impl(&info);
             quote! {
