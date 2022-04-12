@@ -1,6 +1,6 @@
 import WebSocket from 'isomorphic-ws'
 import type { MessageEvent } from 'ws'
-import { Request, Response, Message, Error, Params } from './jsonrpc'
+import { Request, Response, Message, Error as jsonrpc_Error, Params, I32 } from './jsonrpc'
 
 interface Transport {
   request: (method: string, params?: Params) => Promise<unknown>,
@@ -9,7 +9,7 @@ interface Transport {
 
 type RequestMap = Map<
   number,
-  { resolve: (result: unknown) => void; reject: (error: Error) => void }
+  { resolve: (result: unknown) => void; reject: (error: jsonrpc_Error) => void, error_stack: string|undefined }
 >;
 
 type Options = {
@@ -18,9 +18,33 @@ type Options = {
   maxReconnectInterval: number;
 };
 
+class ClientError extends Error {
+  code: I32
+  data: jsonrpc_Error["data"]
+  constructor(error: jsonrpc_Error){
+    super(error.message)
+    this.code = error.code
+    this.data = error.data
+  }
+}
+
 // type RequestEvent = MessageEvent<Request>;
 
-abstract class ClientHandler extends EventTarget implements Transport {
+function getStack() {
+  // better way would be to use error-stack-parser for this
+  const stack = new Error().stack
+  if(!stack) {
+    return undefined
+  }
+  if (stack.startsWith("Error:\n")) {
+    const frames = stack.split("\n")
+    return [frames[0], ...frames.slice(3)].join('\n')
+  } else {
+    return stack.split("\n").slice(3).join('\n')
+  }
+}
+
+export abstract class ClientHandler extends EventTarget implements Transport {
   private _requests: RequestMap = new Map();
   private _requestId = 0;
   _send(_message: Message): void {
@@ -39,8 +63,11 @@ abstract class ClientHandler extends EventTarget implements Transport {
     if (!response.id) return; // TODO: Handle error.
     const handler = this._requests.get(response.id);
     if (!handler) return; // TODO: Handle error.
-    if (response.error) handler.reject(response.error);
-    else handler.resolve(response.result);
+    if (response.error) {
+      const error = new ClientError(response.error)
+      error.stack = handler.error_stack
+      handler.reject(error)
+    } else handler.resolve(response.result);
   }
 
   notification(method: string, params?: Params): void {
@@ -64,7 +91,7 @@ abstract class ClientHandler extends EventTarget implements Transport {
     };
     this._send(request as Message);
     return new Promise((resolve, reject) => {
-      this._requests.set(id, { resolve, reject });
+      this._requests.set(id, { resolve, reject, error_stack: getStack() });
     });
   }
 }
