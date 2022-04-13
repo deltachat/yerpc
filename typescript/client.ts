@@ -36,11 +36,12 @@ function getStack() {
   if(!stack) {
     return undefined
   }
-  if (stack.startsWith("Error:\n")) {
-    const frames = stack.split("\n")
-    return [frames[0], ...frames.slice(3)].join('\n')
-  } else {
-    return stack.split("\n").slice(3).join('\n')
+  if (stack.startsWith("Error\n")) {
+    const frames = stack.split("\n");
+    return ["[[ERROR]]", ...frames.slice(5)].join('\n');
+  }
+  else {
+      return stack.split("\n").slice(3).join('\n');
   }
 }
 
@@ -65,7 +66,7 @@ export abstract class ClientHandler extends EventTarget implements Transport {
     if (!handler) return; // TODO: Handle error.
     if (response.error) {
       const error = new ClientError(response.error)
-      error.stack = handler.error_stack
+      error.stack = handler.error_stack?.replace("[[ERROR]]", `Error: ${error.message}`)
       handler.reject(error)
     } else handler.resolve(response.result);
   }
