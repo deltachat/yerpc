@@ -1,6 +1,7 @@
 pub use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
+use serde_json::Value;
 pub use yerpc_derive::rpc;
 
 mod requests;
@@ -195,6 +196,19 @@ impl From<serde_json::Error> for Error {
 }
 
 #[cfg(feature = "anyhow")]
+#[cfg(feature = "anyhow_expose")]
+impl From<anyhow::Error> for Error {
+    fn from(error: anyhow::Error) -> Self {
+        Self {
+            code: -1,
+            message: format!("{:?}", error),
+            data: None,
+        }
+    }
+}
+
+#[cfg(feature = "anyhow")]
+#[cfg(not(feature = "anyhow_expose"))]
 impl From<anyhow::Error> for Error {
     fn from(_error: anyhow::Error) -> Self {
         Self {
