@@ -12,6 +12,10 @@
   "dependencies": {
     "@types/ws": "^8.2.2",
     "isomorphic-ws": "^4.0.1",
+    "tiny-emitter": "git+https://github.com/Simon-Laux/tiny-emitter.git",
     "typescript": "^4.5.5"
+  },
+  "optionalDependencies": {
+    "ws": "^8.5.0"
   }
 }

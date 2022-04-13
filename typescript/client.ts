@@ -1,5 +1,5 @@
 import WebSocket from 'isomorphic-ws'
-import type { MessageEvent } from 'ws'
+import { TinyEmitter } from 'tiny-emitter';
 import { Request, Response, Message, Error, Params } from './jsonrpc'
 
 interface Transport {
@@ -18,9 +18,13 @@ type Options = {
   maxReconnectInterval: number;
 };
 
-// type RequestEvent = MessageEvent<Request>;
+// type RequestEvent = WebSocket.MessageEvent<Request>;
 
-abstract class ClientHandler extends EventTarget implements Transport {
+
+type ClientHandlerEvents = {
+  "request": (request: Request) => void,
+}
+export abstract class ClientHandler extends TinyEmitter<ClientHandlerEvents> implements Transport {
   private _requests: RequestMap = new Map();
   private _requestId = 0;
   _send(_message: Message): void {
@@ -29,9 +33,7 @@ abstract class ClientHandler extends EventTarget implements Transport {
 
   protected _onmessage(message: Message): void {
     if ((message as Request).method) {
-      const request = message as Request;
-      const event = new MessageEvent("request", { data: request });
-      this.dispatchEvent(event);
+      this.emit("request", message as Request);
     }
 
     if (!message.id) return; // TODO: Handle error;
@@ -73,7 +75,7 @@ export class WebsocketClient extends ClientHandler {
   _socket: ReconnectingWebsocket;
   constructor(public url: string, options?: Options) {
     super();
-    const onmessage = (event: MessageEvent) => {
+    const onmessage = (event: WebSocket.MessageEvent) => {
       const message: Message = JSON.parse(event.data as string);
       this._onmessage(message);
     };
@@ -94,12 +96,12 @@ class ReconnectingWebsocket {
   private _connected = false;
   private reconnectAttempts = 0;
 
-  onmessage: (event: MessageEvent) => void;
+  onmessage: (event: WebSocket.MessageEvent) => void;
   closed = false;
 
   constructor(
     public url: string,
-    onmessage: (event: MessageEvent) => void,
+    onmessage: (event: WebSocket.MessageEvent) => void,
     options?: Options,
   ) {
     this.options = {
