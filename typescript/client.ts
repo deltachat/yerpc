@@ -2,7 +2,7 @@ import WebSocket from 'isomorphic-ws'
 import { TinyEmitter } from 'tiny-emitter';
 import { Request, Response, Message, Error, Params } from './jsonrpc'
 
-interface Transport {
+export interface Transport {
   request: (method: string, params?: Params) => Promise<unknown>,
   notification: (method: string, params?: Params) => void
 }
