@@ -20,9 +20,9 @@ type Options = {
 
 // type RequestEvent = WebSocket.MessageEvent<Request>;
 
-
-type ClientHandlerEvents = {
+export type ClientHandlerEvents = {
   "request": (request: Request) => void,
+  [key:string]: (...ev:any) =>void
 }
 export abstract class ClientHandler extends TinyEmitter<ClientHandlerEvents> implements Transport {
   private _requests: RequestMap = new Map();
