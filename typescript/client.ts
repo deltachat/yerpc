@@ -1,9 +1,9 @@
-import { Emitter } from './util/emitter'
-import { Request, Response, Message, Error, Params } from './jsonrpc'
+import { Emitter } from "./util/emitter";
+import { Request, Response, Message, Error, Params } from "./jsonrpc";
 
 export interface Transport {
-  request: (method: string, params?: Params) => Promise<unknown>,
-  notification: (method: string, params?: Params) => void
+  request: (method: string, params?: Params) => Promise<unknown>;
+  notification: (method: string, params?: Params) => void;
 }
 
 type RequestMap = Map<
@@ -13,19 +13,22 @@ type RequestMap = Map<
 
 type ClientEvents = {
   request: (request: Request) => void;
-}
+};
 
-export abstract class ClientHandler extends Emitter<ClientEvents> implements Transport {
+export abstract class ClientHandler
+  extends Emitter<ClientEvents>
+  implements Transport
+{
   private _requests: RequestMap = new Map();
   private _requestId = 0;
   _send(_message: Message): void {
-    throw new Error("_send method not implemented")
+    throw new Error("_send method not implemented");
   }
 
   protected _onmessage(message: Message): void {
     if ((message as Request).method) {
-      const request = message as Request
-      this.emit("request", request)
+      const request = message as Request;
+      this.emit("request", request);
     }
 
     if (!message.id) return; // TODO: Handle error;
@@ -62,4 +65,3 @@ export abstract class ClientHandler extends Emitter<ClientEvents> implements Tra
     });
   }
 }
-

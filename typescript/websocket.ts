@@ -1,7 +1,7 @@
-import WebSocket from 'isomorphic-ws'
-import { Request, Message, Error, Params } from './jsonrpc'
-import { ClientHandler } from './client'
-import {Emitter, EventsT} from './util/emitter';
+import WebSocket from "isomorphic-ws";
+import { Request, Message, Error, Params } from "./jsonrpc";
+import { ClientHandler } from "./client";
+import { Emitter, EventsT } from "./util/emitter";
 
 type WebsocketOptions = {
   reconnectDecay: number;
@@ -10,9 +10,9 @@ type WebsocketOptions = {
 };
 
 export interface WebsocketEvents extends EventsT {
-  connect: () => void,
-  disconnect: () => void
-  error: (error: Error) => void
+  connect: () => void;
+  disconnect: () => void;
+  error: (error: Error) => void;
 }
 
 export class WebsocketClient extends ClientHandler {
@@ -24,11 +24,12 @@ export class WebsocketClient extends ClientHandler {
       this._onmessage(message);
     };
     this._socket = new ReconnectingWebsocket(url, onmessage, options);
-    console.log(this)
 
-    this._socket.on("connect", () => this.emit("connect"))
-    this._socket.on("disconnect", () => this.emit("disconnect"))
-    this._socket.on("error", (error: WebSocket.ErrorEvent) => this.emit("error", error))
+    this._socket.on("connect", () => this.emit("connect"));
+    this._socket.on("disconnect", () => this.emit("disconnect"));
+    this._socket.on("error", (error: WebSocket.ErrorEvent) =>
+      this.emit("error", error)
+    );
   }
 
   _send(message: Message): void {
@@ -52,9 +53,9 @@ class ReconnectingWebsocket extends Emitter<WebsocketEvents> {
   constructor(
     public url: string,
     onmessage: (event: WebSocket.MessageEvent) => void,
-    options?: WebsocketOptions,
+    options?: WebsocketOptions
   ) {
-    super()
+    super();
     this.options = {
       reconnectDecay: 1.5,
       reconnectInterval: 1000,
@@ -67,13 +68,13 @@ class ReconnectingWebsocket extends Emitter<WebsocketEvents> {
 
   private _reconnect() {
     if (this.closed) return;
-    let resolveReady!: ((_: void) => void);
+    let resolveReady!: (_: void) => void;
     this.ready = new Promise((resolve) => (resolveReady = resolve));
 
     this.socket = new WebSocket(this.url);
     this.socket.onmessage = this.onmessage.bind(this);
     this.socket.onopen = (_event) => {
-      this.emit("connect")
+      this.emit("connect");
       this.reconnectAttempts = 0;
       this._connected = true;
       while (this.preopenQueue.length) {
@@ -82,21 +83,17 @@ class ReconnectingWebsocket extends Emitter<WebsocketEvents> {
       resolveReady();
     };
     this.socket.onerror = (error) => {
-      this.emit("error", error)
-    }
+      this.emit("error", error);
+    };
 
     this.socket.onclose = (_event) => {
       this._connected = false;
-      this.emit("disconnect")
+      this.emit("disconnect");
       const wait = Math.min(
         this.options.reconnectInterval *
-          Math.pow(
-            this.options.reconnectDecay,
-            this.reconnectAttempts,
-          ),
-        this.options.maxReconnectInterval,
+          Math.pow(this.options.reconnectDecay, this.reconnectAttempts),
+        this.options.maxReconnectInterval
       );
-      console.log('onclose')
       setTimeout(() => {
         this.reconnectAttempts += 1;
         this._reconnect();
