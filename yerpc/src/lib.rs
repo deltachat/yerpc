@@ -8,7 +8,7 @@ pub mod typescript;
 mod version;
 
 pub use requests::*;
-use typescript::TypeDef;
+pub use typescript::TypeDef;
 pub use version::Version;
 
 #[async_trait]

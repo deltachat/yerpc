@@ -17,7 +17,7 @@ async-trait = "0.1.52"
 serde = { version = "1.0.133", features = ["derive"] }
 serde_json = "1.0.74"
 log = "0.4.14"
-typescript-type-def = { git = "https://github.com/Frando/rust-typescript-type-def.git", branch = "delta", features = ["json_value"] }
+typescript-type-def = { version = "0.5", features = ["json_value"] }
 anyhow = { version = "1.0.52", optional = true }
 futures = "0.3.19"
 async-channel = "1.6.1"

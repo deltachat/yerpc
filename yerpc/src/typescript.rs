@@ -5,11 +5,9 @@ use typescript_type_def::{type_expr::TypeInfo, write_definition_file, Definition
 pub use typescript_type_def as type_def;
 pub use typescript_type_def::TypeDef;
 
-pub fn typedef_to_expr_string<T: TypeDef>(root_namespace: &Option<&str>) -> io::Result<String> {
-    let mut options = DefinitionFileOptions::default();
-    options.root_namespace = root_namespace.as_deref();
+pub fn typedef_to_expr_string<T: TypeDef>(root_namespace: Option<&str>) -> io::Result<String> {
     let mut expr = vec![];
-    <T as TypeDef>::INFO.emit_expr(&mut expr, options)?;
+    <T as TypeDef>::INFO.write_ref_expr(&mut expr, root_namespace)?;
     Ok(String::from_utf8(expr).unwrap())
 }
 
@@ -58,7 +56,7 @@ impl Method {
         }
     }
 
-    pub fn to_string(&self, root_namespace: &Option<&str>) -> String {
+    pub fn to_string(&self, root_namespace: Option<&str>) -> String {
         let (args, call) = if !self.is_positional {
             if let Some((name, ty)) = self.args.get(0) {
                 (
@@ -110,10 +108,8 @@ impl Method {
     }
 }
 
-fn type_to_expr(ty: &'static TypeInfo, root_namespace: &Option<&str>) -> String {
-    let mut options = DefinitionFileOptions::default();
-    options.root_namespace = root_namespace.as_deref();
+fn type_to_expr(ty: &'static TypeInfo, root_namespace: Option<&str>) -> String {
     let mut expr = vec![];
-    ty.emit_expr(&mut expr, options).unwrap();
+    ty.write_ref_expr(&mut expr, root_namespace).unwrap();
     String::from_utf8(expr).unwrap()
 }

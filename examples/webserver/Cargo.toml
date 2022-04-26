@@ -20,7 +20,7 @@ futures = "0.3.19"
 env_logger = "0.9.0"
 log = "0.4.14"
 async-trait = "0.1.52"
-typescript-type-def = { git = "https://github.com/Frando/rust-typescript-type-def.git", branch = "delta", features = ["json_value"] }
+typescript-type-def = { version = "0.5", features = ["json_value"] }
 async-broadcast = "0.3.4"
 yerpc = { path  = "../../yerpc", features = ["anyhow"]}
 yerpc-tide = { path  = "../../yerpc-tide" }
