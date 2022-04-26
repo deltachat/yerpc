@@ -2,7 +2,7 @@
   "name": "yerpc",
   "type": "module",
   "version": "0.1.0",
-  "main": "./typescript/dist/client.js",
+  "main": "./typescript/dist/index.js",
   "files": [
     "typescript/**"
   ],
@@ -13,7 +13,7 @@
     "@types/ws": "^8.2.2",
     "isomorphic-ws": "^4.0.1",
     "tiny-emitter": "git+https://github.com/Simon-Laux/tiny-emitter.git",
-    "typescript": "^4.5.5"
+    "typescript": "^4.6.3"
   },
   "optionalDependencies": {
     "ws": "^8.5.0"

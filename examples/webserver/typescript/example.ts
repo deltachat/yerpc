@@ -1,7 +1,6 @@
 import { RawClient } from "./generated/client";
-import { Request } from "./generated/jsonrpc";
 import { ChatMessage } from "./generated/types";
-import { WebsocketClient } from "yerpc";
+import { WebsocketClient, Request } from "yerpc";
 
 window.addEventListener("DOMContentLoaded", (_event) => {
   run();
@@ -10,8 +9,16 @@ async function run() {
   const transport = new WebsocketClient("ws://localhost:20808/ws");
   const client = new RawClient(transport);
 
-  transport.addEventListener("request", (event: Event) => {
-    const request = (event as MessageEvent<Request>).data;
+  transport.on("connect", () => {
+    document.getElementById("status")!.innerHTML = "connected!"
+  })
+  transport.on("disconnect", () => {
+    document.getElementById("status")!.innerHTML = "disconnected!"
+  })
+  transport.on("error", (err: Error) => {
+    document.getElementById("status")!.innerHTML = `Error: ${String(err)}`
+  })
+  transport.on("request", (request: Request) => {
     const message = request.params as ChatMessage;
     appendMessageToLog(message);
   });
