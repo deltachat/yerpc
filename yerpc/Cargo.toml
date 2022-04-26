@@ -13,13 +13,13 @@ authors = [
 
 [dependencies]
 yerpc_derive = { path  = "../yerpc-derive" }
-async-trait = "0.1.52"
-serde = { version = "1.0.133", features = ["derive"] }
-serde_json = "1.0.74"
-log = "0.4.14"
-typescript-type-def = { version = "0.5", features = ["json_value"] }
-anyhow = { version = "1.0.52", optional = true }
-futures = "0.3.19"
+async-trait = "0.1.53"
+serde = { version = "1.0.136", features = ["derive"] }
+serde_json = "1.0.79"
+log = "0.4.16"
+typescript-type-def = { version = "0.5.1", features = ["json_value"] }
+anyhow = { version = "1.0.57", optional = true }
+futures = "0.3.21"
 async-channel = "1.6.1"
 async-mutex = "1.4.0"
 
