@@ -37,13 +37,13 @@ pub struct Method {
 
 impl Method {
     pub fn new(
-        ts_name: impl ToString,
-        rpc_name: impl ToString,
+        ts_name: &str,
+        rpc_name: &str,
         args: Vec<(String, &'static TypeInfo)>,
         output: Option<&'static TypeInfo>,
         is_notification: bool,
         is_positional: bool,
-        docs: Option<impl ToString>,
+        docs: Option<&str>,
     ) -> Self {
         Self {
             ts_name: ts_name.to_string(),
