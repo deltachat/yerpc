@@ -2,6 +2,8 @@
   "name": "yerpc",
   "type": "module",
   "version": "0.1.0",
+  "author": "Franz Heinzmann <Frando>",
+  "license": "Apache-2.0 or MIT",
   "main": "./typescript/dist/index.js",
   "files": [
     "typescript/**"
