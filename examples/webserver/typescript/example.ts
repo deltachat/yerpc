@@ -1,12 +1,12 @@
 import { RawClient } from "./generated/client";
 import { ChatMessage } from "./generated/types";
-import { WebsocketClient, Request } from "yerpc";
+import { WebsocketTransport, Request } from "yerpc";
 
 window.addEventListener("DOMContentLoaded", (_event) => {
   run();
 });
 async function run() {
-  const transport = new WebsocketClient("ws://localhost:20808/ws");
+  const transport = new WebsocketTransport("ws://localhost:20808/ws");
   const client = new RawClient(transport);
 
   transport.on("connect", () => {

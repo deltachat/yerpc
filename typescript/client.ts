@@ -15,7 +15,7 @@ type ClientEvents = {
   request: (request: Request) => void;
 };
 
-export abstract class ClientHandler
+export abstract class BaseTransport
   extends Emitter<ClientEvents>
   implements Transport
 {

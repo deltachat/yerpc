@@ -1,6 +1,6 @@
 import WebSocket from "isomorphic-ws";
 import { Request, Message, Error, Params } from "./jsonrpc";
-import { ClientHandler } from "./client";
+import { BaseTransport } from "./client";
 import { Emitter, EventsT } from "./util/emitter";
 
 type WebsocketOptions = {
@@ -15,7 +15,7 @@ export interface WebsocketEvents extends EventsT {
   error: (error: Error) => void;
 }
 
-export class WebsocketClient extends ClientHandler {
+export class WebsocketTransport extends BaseTransport {
   _socket: ReconnectingWebsocket;
   constructor(public url: string, options?: WebsocketOptions) {
     super();
