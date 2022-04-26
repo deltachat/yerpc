@@ -44,9 +44,14 @@ pub(crate) fn generate_typescript_generator(info: &RpcInfo) -> TokenStream {
         let ts_name = method.name.to_case(Case::Camel);
         let rpc_name = &method.name;
         let is_notification = method.is_notification;
+        let docs = if let Some(docs) = &method.docs {
+            quote!(Some(#docs))
+        } else {
+            quote!(None)
+        };
         gen_methods.push(quote!(
                 let args = vec![#(#gen_args),*];
-                let method = Method::new(#ts_name, #rpc_name, args, #gen_output, #is_notification, #is_positional);
+                let method = Method::new(#ts_name, #rpc_name, args, #gen_output, #is_notification, #is_positional, #docs);
                 out.push_str(&method.to_string(&root_namespace));
         ));
     }

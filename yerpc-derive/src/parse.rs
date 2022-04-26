@@ -42,6 +42,7 @@ pub(crate) struct RemoteProcedure<'s> {
     pub input: Inputs<'s>,
     pub output: Option<&'s Type>,
     pub is_notification: bool,
+    pub docs: Option<String>,
 }
 
 #[derive(Debug)]
@@ -68,6 +69,23 @@ impl<'s> Input<'s> {
     }
 }
 
+fn parse_doc_comment(attrs: &[syn::Attribute]) -> Option<String> {
+    let mut parts = vec![];
+    for attr in attrs {
+        let meta = attr.parse_meta().unwrap();
+        if let syn::Meta::NameValue(meta) = meta {
+            if let syn::Lit::Str(doc) = meta.lit {
+                parts.push(doc.value());
+            }
+        }
+    }
+    if !parts.is_empty() {
+        Some(parts.join("\n").into())
+    } else {
+        None
+    }
+}
+
 impl<'s> RemoteProcedure<'s> {
     pub fn from_method(root_attr_args: &RootAttrArgs, method: &'s ImplItemMethod) -> Self {
         let args = MethodAttrArgs::from_attributes(&method.attrs).unwrap_or_default();
@@ -85,18 +103,19 @@ impl<'s> RemoteProcedure<'s> {
             let input = inputs_iter.find_map(Input::from_arg);
             Inputs::Structured(input)
         };
+        let docs = parse_doc_comment(&method.attrs);
         Self {
             ident: &method.sig.ident,
             name,
             input,
             output,
             is_notification: args.notification,
+            docs,
         }
     }
 }
 
 fn ident_from_pat(pat: &Pat) -> Option<&Ident> {
-    
     match pat {
         Pat::Ident(pat_ident) => Some(&pat_ident.ident),
         _ => None,

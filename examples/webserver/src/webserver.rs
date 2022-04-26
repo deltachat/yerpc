@@ -105,12 +105,16 @@ impl Session {
 
 #[rpc]
 impl Session {
+    /// Send a chat message.
+    ///
+    /// Pass the message to send.
     #[rpc(positional)]
     pub async fn send(&self, message: ChatMessage) -> yerpc::Result<usize> {
         let res = self.state.post(self.peer_addr.clone(), message).await?;
         Ok(res)
     }
 
+    /// List chat messages.
     #[rpc(positional)]
     pub async fn list(&self) -> yerpc::Result<Vec<ChatMessage>> {
         let list = self.state.list().await;

@@ -14,11 +14,21 @@ interface Transport {
 export class RawClient {
   constructor(private _transport: Transport) {}
 
+  /**
+   * Send a chat message.
+   *
+   * Pass the message to send.
+   */
   public send(message: T.ChatMessage): Promise<T.Usize> {
     return (this._transport.request('send', [message] as RPC.Params)) as Promise<T.Usize>;
   }
+
+  /**
+   * List chat messages.
+   */
   public list(): Promise<(T.ChatMessage)[]> {
     return (this._transport.request('list', [] as RPC.Params)) as Promise<(T.ChatMessage)[]>;
   }
+
 
 }

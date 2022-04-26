@@ -34,6 +34,7 @@ pub struct Method {
     pub rpc_name: String,
     pub args: Vec<(String, &'static TypeInfo)>,
     pub output: Option<&'static TypeInfo>,
+    pub docs: Option<String>,
 }
 
 impl Method {
@@ -44,6 +45,7 @@ impl Method {
         output: Option<&'static TypeInfo>,
         is_notification: bool,
         is_positional: bool,
+        docs: Option<impl ToString>,
     ) -> Self {
         Self {
             ts_name: ts_name.to_string(),
@@ -52,6 +54,7 @@ impl Method {
             output,
             is_notification,
             is_positional,
+            docs: docs.map(|d| d.to_string()),
         }
     }
 
@@ -91,9 +94,18 @@ impl Method {
         } else {
             (output, "notification")
         };
+        let docs = if let Some(docs) = &self.docs {
+            let docs = docs
+                .split("\n")
+                .map(|s| format!("   *{}\n", s))
+                .collect::<String>();
+            format!("  /**\n{}   */", docs)
+        } else {
+            "".into()
+        };
         format!(
-            "  public {}({}): {} {{\n    return (this._transport.{}('{}', {} as RPC.Params)) as {};\n  }}\n",
-            self.ts_name, args, output, inner_method, self.rpc_name, call, output
+            "{}\n  public {}({}): {} {{\n    return (this._transport.{}('{}', {} as RPC.Params)) as {};\n  }}\n\n",
+            docs, self.ts_name, args, output, inner_method, self.rpc_name, call, output
         )
     }
 }
