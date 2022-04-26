@@ -1,5 +1,5 @@
-import { Emitter } from "./util/emitter";
-import { Request, Response, Message, Error, Params } from "./jsonrpc";
+import { Emitter } from "./util/emitter.js";
+import { Request, Response, Message, Error, Params } from "./jsonrpc.js";
 
 export interface Transport {
   request: (method: string, params?: Params) => Promise<unknown>;

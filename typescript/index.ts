@@ -1,3 +1,3 @@
-export * from "./client";
-export * from "./jsonrpc";
-export * from "./websocket";
+export * from "./client.js";
+export * from "./jsonrpc.js";
+export * from "./websocket.js";
