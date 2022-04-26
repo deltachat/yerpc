@@ -1,7 +1,7 @@
 import WebSocket from "isomorphic-ws";
-import { Request, Message, Error, Params } from "./jsonrpc";
-import { BaseTransport } from "./client";
-import { Emitter, EventsT } from "./util/emitter";
+import { Request, Message, Error, Params } from "./jsonrpc.js";
+import { BaseTransport } from "./client.js";
+import { Emitter, EventsT } from "./util/emitter.js";
 
 type WebsocketOptions = {
   reconnectDecay: number;
