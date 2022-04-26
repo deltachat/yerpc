@@ -9,7 +9,9 @@
     "typescript/**"
   ],
   "scripts": {
-    "build": "tsc -p ./typescript"
+    "build": "tsc -p ./typescript",
+    "lint": "prettier --check typescript/**.ts",
+    "lint:fix": "prettier --write typescript/**.ts"
   },
   "dependencies": {
     "@types/ws": "^8.2.2",
@@ -19,5 +21,8 @@
   },
   "optionalDependencies": {
     "ws": "^8.5.0"
+  },
+  "devDependencies": {
+    "prettier": "^2.6.2"
   }
 }
