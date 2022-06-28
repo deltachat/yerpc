@@ -1,23 +1,55 @@
-use crate::{Error, Message, Params, Request, Response, RpcHandler, Version};
+use crate::{Error, Message, Params, Request, Response, RpcServer, Version};
 use async_mutex::Mutex;
-use futures::channel::oneshot;
+use futures::{channel::oneshot, Future, Sink};
 use serde::Serialize;
-use std::{collections::HashMap, sync::Arc};
+use std::io;
+use std::{
+    collections::HashMap,
+    pin::Pin,
+    sync::Arc,
+    task::{Context, Poll},
+};
 
-pub struct MessageHandle<T> {
-    requests: RpcHandle,
-    session: T,
+// pub fn create_session(server_impl: impl RpcServer) -> (RpcSession<T>,
+
+pub struct RpcSession<T> {
+    client: RpcClient,
+    server: T,
 }
-impl<T: RpcHandler> MessageHandle<T> {
-    pub fn new(requests: RpcHandle, session: T) -> Self {
-        Self { requests, session }
+
+impl<T: Clone> Clone for RpcSession<T> {
+    fn clone(&self) -> Self {
+        Self {
+            client: self.client.clone(),
+            server: self.server.clone(),
+        }
     }
-    pub async fn handle_message(&self, input: &str) {
+}
+
+impl<T: RpcServer> RpcSession<T> {
+    pub fn create(server: T) -> (Self, async_channel::Receiver<Message>) {
+        let (client, receiver) = RpcClient::new();
+        (Self::new(client, server), receiver)
+    }
+
+    pub fn new(client: RpcClient, server: T) -> Self {
+        Self { client, server }
+    }
+
+    pub fn client(&self) -> &RpcClient {
+        &self.client
+    }
+
+    pub fn into_sink(self) -> RpcSessionSink<T> {
+        RpcSessionSink::Idle(Some(self))
+    }
+
+    pub async fn handle_incoming(&self, input: &str) {
         let message: Message = match serde_json::from_str(input) {
             Ok(message) => message,
             Err(err) => {
                 let _ = self
-                    .requests
+                    .client
                     .tx(Message::Response(Response::error(
                         None,
                         Error::new(Error::PARSE_ERROR, err),
@@ -32,62 +64,53 @@ impl<T: RpcHandler> MessageHandle<T> {
                 let params = request.params.map(Params::into_value).unwrap_or_default();
                 let response = match request.id {
                     None | Some(0) => {
-                        match self.session.on_notification(request.method, params).await {
+                        match self
+                            .server
+                            .handle_notification(request.method, params)
+                            .await
+                        {
                             Ok(()) => None,
                             Err(err) => Some(Response::error(request.id, err)),
                         }
                     }
-                    Some(id) => match self.session.on_request(request.method, params).await {
+                    Some(id) => match self.server.handle_request(request.method, params).await {
                         Ok(payload) => Some(Response::success(id, payload)),
                         Err(err) => Some(Response::error(Some(id), err)),
                     },
                 };
                 if let Some(response) = response {
-                    let _ = self.requests.tx(Message::Response(response)).await;
+                    let _ = self.client.tx(Message::Response(response)).await;
                 }
             }
             Message::Response(response) => {
-                self.requests.on_response(response).await;
+                self.client.handle_response(response).await;
             }
         };
     }
 }
 
 #[derive(Clone)]
-pub struct RpcHandle {
-    inner: Arc<Mutex<RequestMap>>,
+pub struct RpcClient {
+    inner: Arc<Mutex<PendingRequests>>,
     tx: async_channel::Sender<Message>,
 }
 
-fn downcast_params<T: Serialize>(params: Option<T>) -> Result<Option<Params>, Error> {
-    if let Some(params) = params {
-        let params = serde_json::to_value(params).map_err(|_| Error::bad_request())?;
-        match params {
-            serde_json::Value::Array(params) => Ok(Some(Params::Positional(params))),
-            serde_json::Value::Object(params) => Ok(Some(Params::Structured(params))),
-            _ => Err(Error::bad_request()),
-        }
-    } else {
-        Ok(None)
-    }
-}
-
-impl RpcHandle {
+impl RpcClient {
     pub fn new() -> (Self, async_channel::Receiver<Message>) {
         let (tx, rx) = async_channel::bounded(10);
-        let inner = RequestMap::new();
+        let inner = PendingRequests::new();
         let inner = Arc::new(Mutex::new(inner));
         let this = Self { inner, tx };
         (this, rx)
     }
-    pub async fn request(
+    pub async fn send_request(
         &self,
         method: impl ToString,
         params: Option<impl Serialize>,
     ) -> Result<serde_json::Value, Error> {
         let method = method.to_string();
         let params = downcast_params(params)?;
-        let (message, rx) = self.inner.lock().await.request(method, params);
+        let (message, rx) = self.inner.lock().await.insert(method, params);
         self.tx(message).await?;
         // Wait for response to arrive.
         // TODO: Better error.
@@ -100,7 +123,7 @@ impl RpcHandle {
         }
     }
 
-    pub async fn notify(
+    pub async fn send_notification(
         &self,
         method: impl ToString,
         params: Option<impl Serialize>,
@@ -126,23 +149,23 @@ impl RpcHandle {
         Ok(())
     }
 
-    pub async fn on_response(&self, response: Response) {
-        self.inner.lock().await.on_response(response)
+    pub async fn handle_response(&self, response: Response) {
+        self.inner.lock().await.handle_response(response)
     }
 }
 
 #[derive(Default)]
-pub struct RequestMap {
+pub struct PendingRequests {
     next_request_id: usize,
-    requests: HashMap<usize, oneshot::Sender<Response>>,
+    pending_requests: HashMap<usize, oneshot::Sender<Response>>,
     // tx: async_channel::Sender<Message>,
 }
 
-impl RequestMap {
+impl PendingRequests {
     pub fn new() -> Self {
         Self::default()
     }
-    pub fn request(
+    pub fn insert(
         &mut self,
         method: String,
         params: Option<Params>,
@@ -150,7 +173,7 @@ impl RequestMap {
         let request_id = self.next_request_id;
         self.next_request_id += 1;
         let (tx, rx) = oneshot::channel();
-        self.requests.insert(request_id, tx);
+        self.pending_requests.insert(request_id, tx);
         let request = Request {
             jsonrpc: Version::V2,
             method,
@@ -160,12 +183,72 @@ impl RequestMap {
         let message = Message::Request(request);
         (message, rx)
     }
-    pub fn on_response(&mut self, response: Response) {
+    pub fn handle_response(&mut self, response: Response) {
         if let Some(id) = &response.id {
-            let tx = self.requests.remove(&(*id as usize));
+            let tx = self.pending_requests.remove(&(*id as usize));
             if let Some(tx) = tx {
                 let _ = tx.send(response);
             }
         }
+    }
+}
+
+fn downcast_params<T: Serialize>(params: Option<T>) -> Result<Option<Params>, Error> {
+    if let Some(params) = params {
+        let params = serde_json::to_value(params).map_err(|_| Error::bad_request())?;
+        match params {
+            serde_json::Value::Array(params) => Ok(Some(Params::Positional(params))),
+            serde_json::Value::Object(params) => Ok(Some(Params::Structured(params))),
+            _ => Err(Error::bad_request()),
+        }
+    } else {
+        Ok(None)
+    }
+}
+
+pub enum RpcSessionSink<T> {
+    Idle(Option<RpcSession<T>>),
+    Sending(Pin<Box<dyn Future<Output = RpcSession<T>> + 'static + Send>>),
+}
+
+impl<T> Sink<String> for RpcSessionSink<T>
+where
+    T: RpcServer + Unpin,
+{
+    type Error = io::Error;
+    fn poll_ready(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+        let this = self.get_mut();
+        match this {
+            Self::Idle(_) => Poll::Ready(Ok(())),
+            Self::Sending(fut) => match fut.as_mut().poll(cx) {
+                Poll::Ready(session) => {
+                    *this = Self::Idle(Some(session));
+                    Poll::Ready(Ok(()))
+                }
+                Poll::Pending => Poll::Pending,
+            },
+        }
+    }
+    fn start_send(self: Pin<&mut Self>, item: String) -> Result<(), Self::Error> {
+        let this = self.get_mut();
+        match this {
+            Self::Sending(_) => unreachable!(),
+            Self::Idle(session) => {
+                let session = session.take().unwrap();
+                let fut = async move {
+                    session.handle_incoming(&item).await;
+                    session
+                };
+                let fut = Box::pin(fut);
+                *this = Self::Sending(fut);
+                Ok(())
+            }
+        }
+    }
+    fn poll_flush(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+        Poll::Ready(Ok(()))
+    }
+    fn poll_close(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+        Poll::Ready(Ok(()))
     }
 }

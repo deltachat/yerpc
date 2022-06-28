@@ -66,8 +66,8 @@ pub(crate) fn generate_rpc_impl(info: &RpcInfo) -> TokenStream {
     quote! {
         #[automatically_derived]
         #[::yerpc::async_trait]
-        impl #impl_generics #crat::RpcHandler for #struc #where_clause {
-            async fn on_request(
+        impl #impl_generics #crat::RpcServer for #struc #where_clause {
+            async fn handle_request(
                 &self,
                 method: String,
                 params: ::serde_json::Value,
@@ -77,7 +77,7 @@ pub(crate) fn generate_rpc_impl(info: &RpcInfo) -> TokenStream {
                     _ => Err(#crat::Error::method_not_found())
                 }
             }
-            async fn on_notification(
+            async fn handle_notification(
                 &self,
                 method: String,
                 params: ::serde_json::Value,

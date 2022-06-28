@@ -6,11 +6,13 @@ use std::sync::Arc;
 use tide::Request;
 
 use yerpc::typescript::TypeDef;
-use yerpc::{rpc, RpcHandle};
+use yerpc::{rpc, RpcClient, RpcSession};
 use yerpc_tide::yerpc_handler;
 
 mod emitter;
 use emitter::EventEmitter;
+
+use tide_websockets::{Message as WsMessage, WebSocket};
 
 #[derive(Serialize, Deserialize, TypeDef, Clone, Debug)]
 struct User {
@@ -32,12 +34,12 @@ enum Event {
 }
 
 #[derive(Clone)]
-struct State {
+struct Backend {
     messages: Arc<RwLock<Vec<ChatMessage>>>,
     events: Arc<EventEmitter<(String, ChatMessage)>>,
 }
 
-impl State {
+impl Backend {
     pub fn new() -> Self {
         Self {
             messages: Default::default(),
@@ -67,15 +69,15 @@ impl State {
 #[derive(Clone)]
 struct Session {
     peer_addr: String,
-    state: State,
-    client: RpcHandle,
+    backend: Backend,
+    client: RpcClient,
 }
 impl Session {
-    pub fn new(peer_addr: Option<&str>, state: State, client: RpcHandle) -> Self {
+    pub fn new(peer_addr: Option<&str>, backend: Backend, client: RpcClient) -> Self {
         let peer_addr = peer_addr.map(|addr| addr.to_string()).unwrap_or_default();
         let this = Self {
             peer_addr,
-            state,
+            backend,
             client,
         };
         log::info!("Client connected: {}", this.peer_addr);
@@ -86,13 +88,13 @@ impl Session {
     fn spawn_event_loop(&self) {
         let this = self.clone();
         task::spawn(async move {
-            let mut message_events = this.state.subscribe().await;
+            let mut message_events = this.backend.subscribe().await;
             while let Some((_peer_addr, ev)) = message_events.next().await {
                 // Optionally: This would be how to filter out messages that were emitted by ourselves.
                 // if peer_addr != this.peer_addr {
                 let res = this
                     .client
-                    .notify("onevent", Some(Event::Message(ev)))
+                    .send_notification("onevent", Some(Event::Message(ev)))
                     .await;
                 if res.is_err() {
                     break;
@@ -110,14 +112,14 @@ impl Session {
     /// Pass the message to send.
     #[rpc(positional)]
     pub async fn send(&self, message: ChatMessage) -> yerpc::Result<usize> {
-        let res = self.state.post(self.peer_addr.clone(), message).await?;
+        let res = self.backend.post(self.peer_addr.clone(), message).await?;
         Ok(res)
     }
 
     /// List chat messages.
     #[rpc(positional)]
     pub async fn list(&self) -> yerpc::Result<Vec<ChatMessage>> {
-        let list = self.state.list().await;
+        let list = self.backend.list().await;
         Ok(list)
     }
 }
@@ -125,13 +127,47 @@ impl Session {
 #[async_std::main]
 async fn main() -> Result<(), std::io::Error> {
     env_logger::init();
-    let state = State::new();
-    let mut app = tide::with_state(state);
+    let backend = Backend::new();
+    let mut app = tide::with_state(backend);
 
     app.at("/ws")
-        .get(yerpc_handler(|req: Request<State>, rpc| async move {
-            Ok(Session::new(req.remote(), req.state().clone(), rpc))
+        .get(WebSocket::new(move |req: Request<Backend>, stream| {
+            let backend = req.state().clone();
+            let (client, mut out_rx) = RpcClient::new();
+            let backend_session = Session::new(req.remote(), backend, client.clone());
+            let session = RpcSession::new(client, backend_session);
+            let stream_rx = stream.clone();
+            task::spawn(async move {
+                while let Some(message) = out_rx.next().await {
+                    let message = serde_json::to_string(&message)?;
+                    stream.send(WsMessage::Text(message)).await?;
+                }
+                let res: Result<(), anyhow::Error> = Ok(());
+                res
+            });
+            async move {
+                let sink = session.into_sink();
+                stream_rx
+                    .filter_map(|msg| async move {
+                        match msg {
+                            Ok(WsMessage::Text(input)) => Some(Ok(input)),
+                            _ => None,
+                        }
+                    })
+                    .forward(sink)
+                    .await;
+                Ok(())
+            }
+            // async move {
+            //     while let Some(Ok(WsMessage::Text(input))) = stream_rx.next().await {
+            //         session.handle_incoming(&input).await;
+            //     }
+            //     Ok(())
+            // }
         }));
+    // .get(yerpc_handler(|req: Request<Backend>, rpc| async move {
+    //     Ok(Session::new(req.remote(), req.state().clone(), rpc))
+    // }));
     app.listen("127.0.0.1:20808").await?;
 
     Ok(())

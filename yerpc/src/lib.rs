@@ -12,11 +12,11 @@ pub use typescript::TypeDef;
 pub use version::Version;
 
 #[async_trait]
-pub trait RpcHandler: Sync + Send + 'static {
-    async fn on_notification(&self, _method: String, _params: serde_json::Value) -> Result<()> {
+pub trait RpcServer: Sync + Send + 'static {
+    async fn handle_notification(&self, _method: String, _params: serde_json::Value) -> Result<()> {
         Ok(())
     }
-    async fn on_request(
+    async fn handle_request(
         &self,
         _method: String,
         _params: serde_json::Value,
