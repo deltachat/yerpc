@@ -95,6 +95,8 @@ pub struct RpcClient {
     tx: async_channel::Sender<Message>,
 }
 
+pub type OutReceiver = async_channel::Receiver<Message>;
+
 impl RpcClient {
     pub fn new() -> (Self, async_channel::Receiver<Message>) {
         let (tx, rx) = async_channel::bounded(10);
@@ -216,7 +218,7 @@ where
     T: RpcServer + Unpin,
 {
     type Error = io::Error;
-    fn poll_ready(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+    fn poll_ready(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         let this = self.get_mut();
         match this {
             Self::Idle(_) => Poll::Ready(Ok(())),
