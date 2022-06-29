@@ -2545,7 +2545,7 @@ checksum = "c811ca4a8c853ef420abd8592ba53ddbbac90410fab6903b3e79972a631f7680"
 
 [[package]]
 name = "yerpc"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "async-channel",
@@ -2579,7 +2579,7 @@ dependencies = [
 
 [[package]]
 name = "yerpc_derive"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "convert_case",
  "darling 0.14.0",
