@@ -1,2 +1,2 @@
 [workspace]
-members = ["yerpc-derive", "yerpc", "yerpc-tide", "yerpc-axum", "examples/webserver", "examples/axum"]
+members = ["yerpc-derive", "yerpc", "yerpc-tide", "yerpc-axum", "examples/tide", "examples/axum"]

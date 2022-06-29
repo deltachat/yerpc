@@ -1,5 +1,5 @@
 [package]
-name = "yerpc_example_webserver_tide"
+name = "yerpc_example_tide"
 version = "0.1.0"
 edition = "2021"
 

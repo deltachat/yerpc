@@ -7,7 +7,6 @@ use tide::Request;
 
 use yerpc::typescript::TypeDef;
 use yerpc::{rpc, RpcClient, RpcSession};
-use yerpc_tide::yerpc_handler;
 
 mod emitter;
 use emitter::EventEmitter;
@@ -155,19 +154,10 @@ async fn main() -> Result<(), std::io::Error> {
                         }
                     })
                     .forward(sink)
-                    .await;
+                    .await?;
                 Ok(())
             }
-            // async move {
-            //     while let Some(Ok(WsMessage::Text(input))) = stream_rx.next().await {
-            //         session.handle_incoming(&input).await;
-            //     }
-            //     Ok(())
-            // }
         }));
-    // .get(yerpc_handler(|req: Request<Backend>, rpc| async move {
-    //     Ok(Session::new(req.remote(), req.state().clone(), rpc))
-    // }));
     app.listen("127.0.0.1:20808").await?;
 
     Ok(())

@@ -120,7 +120,7 @@ impl Session {
     /// Pass the message to send.
     #[rpc(positional)]
     pub async fn send(&self, message: ChatMessage) -> yerpc::Result<usize> {
-        let res = self.backend.post(self.peer_addr.clone(), message).await?;
+        let res = self.backend.post(self.peer_addr, message).await?;
         Ok(res)
     }
 
