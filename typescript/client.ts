@@ -11,12 +11,12 @@ type RequestMap = Map<
   { resolve: (result: unknown) => void; reject: (error: Error) => void }
 >;
 
-type ClientEvents = {
+type ClientEvents<T> = {
   request: (request: Request) => void;
-};
+} & T;
 
-export abstract class BaseTransport
-  extends Emitter<ClientEvents>
+export abstract class BaseTransport<T = {}>
+  extends Emitter<ClientEvents<T>>
   implements Transport
 {
   private _requests: RequestMap = new Map();

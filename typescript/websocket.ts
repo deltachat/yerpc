@@ -12,10 +12,10 @@ type WebsocketOptions = {
 export interface WebsocketEvents extends EventsT {
   connect: () => void;
   disconnect: () => void;
-  error: (error: Error) => void;
+  error: (error: WebSocket.ErrorEvent) => void;
 }
 
-export class WebsocketTransport extends BaseTransport {
+export class WebsocketTransport extends BaseTransport<WebsocketEvents> {
   _socket: ReconnectingWebsocket;
   get reconnectAttempts () {
     return this._socket.reconnectAttempts

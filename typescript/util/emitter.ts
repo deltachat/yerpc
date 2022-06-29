@@ -18,7 +18,7 @@ export class Emitter<T extends EventsT = any> {
   constructor () {
     this.e = new Map()
   }
-  on<E extends keyof T>(event: E | string, callback: T[E] | Callback, ctx?: any) {
+  on<E extends keyof T>(event: E, callback: T[E], ctx?: any) {
     return this._on(event, callback, ctx)
   }
 
