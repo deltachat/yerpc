@@ -4,10 +4,16 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "build": "yarn upgrade yerpc && tsc && esbuild --bundle dist/example.js --outfile=dist/example.bundle.js",
-    "start": "yarn build && http-server"
+    "build": "tsc && esbuild --bundle dist/example.js --outfile=dist/example.bundle.js",
+    "watch": "esbuild --bundle example.ts --outfile=dist/example.bundle.js --watch",
+    "start": "http-server"
   },
   "dependencies": {
-    "yerpc": "file:../../.."
+    "yerpc": "file:../../../typescript"
+  },
+  "devDependencies": {
+    "esbuild": "^0.14.47",
+    "http-server": "^14.1.1",
+    "typescript": "^4.7.4"
   }
 }

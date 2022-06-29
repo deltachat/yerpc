@@ -66,6 +66,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "ansi_term"
+version = "0.12.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d52a9bb7ec0cf484c551830a7ce27bd20d67eac647e1befb56b0be4ee39a55d2"
+dependencies = [
+ "winapi",
+]
+
+[[package]]
 name = "anyhow"
 version = "1.0.57"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1741,6 +1750,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "sharded-slab"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "900fba806f70c630b0a382d0d825e17a0f19fcd059a2ade1ff237bcddf446b31"
+dependencies = [
+ "lazy_static",
+]
+
+[[package]]
 name = "signal-hook"
 version = "0.3.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1913,6 +1931,15 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "thread_local"
+version = "1.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5516c27b78311c50bf42c071425c560ac799b11c30b31f87e3081965fe5e0180"
+dependencies = [
+ "once_cell",
 ]
 
 [[package]]
@@ -2096,6 +2123,7 @@ dependencies = [
  "tower",
  "tower-layer",
  "tower-service",
+ "tracing",
 ]
 
 [[package]]
@@ -2141,6 +2169,32 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7b7358be39f2f274f322d2aaed611acc57f382e8eb1e5b48cb9ae30933495ce7"
 dependencies = [
  "once_cell",
+ "valuable",
+]
+
+[[package]]
+name = "tracing-log"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "78ddad33d2d10b1ed7eb9d1f518a5674713876e97e5bb9b7345a7984fbb4f922"
+dependencies = [
+ "lazy_static",
+ "log",
+ "tracing-core",
+]
+
+[[package]]
+name = "tracing-subscriber"
+version = "0.3.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4bc28f93baff38037f64e6f43d34cfa1605f27a49c34e8a04c5e78b0babf2596"
+dependencies = [
+ "ansi_term",
+ "sharded-slab",
+ "smallvec",
+ "thread_local",
+ "tracing-core",
+ "tracing-log",
 ]
 
 [[package]]
@@ -2267,6 +2321,12 @@ name = "utf-8"
 version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "09cc8ee72d2a9becf2f2febe0205bbed8fc6615b7cb429ad062dc7b7ddd036a9"
+
+[[package]]
+name = "valuable"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "830b7e5d4d90034032940e4ace0d9a9a057e7a45cd94e6c007832e39edb82f6d"
 
 [[package]]
 name = "value-bag"
@@ -2485,33 +2545,23 @@ checksum = "c811ca4a8c853ef420abd8592ba53ddbbac90410fab6903b3e79972a631f7680"
 
 [[package]]
 name = "yerpc"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "async-channel",
  "async-mutex",
- "async-std",
  "async-trait",
+ "axum",
  "futures",
+ "futures-util",
  "log",
  "serde",
  "serde_json",
- "typescript-type-def",
- "yerpc_derive",
-]
-
-[[package]]
-name = "yerpc-axum"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "axum",
- "futures-util",
- "serde",
- "serde_json",
  "tokio",
- "tracing",
- "yerpc",
+ "tokio-tungstenite",
+ "typescript-type-def",
+ "url",
+ "yerpc_derive",
 ]
 
 [[package]]
@@ -2529,7 +2579,7 @@ dependencies = [
 
 [[package]]
 name = "yerpc_derive"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "convert_case",
  "darling 0.14.0",
@@ -2546,16 +2596,16 @@ dependencies = [
  "async-broadcast",
  "async-trait",
  "axum",
- "env_logger",
  "futures",
  "log",
  "serde",
  "serde_json",
  "tokio",
+ "tower-http",
  "tracing",
+ "tracing-subscriber",
  "typescript-type-def",
  "yerpc",
- "yerpc-axum",
 ]
 
 [[package]]

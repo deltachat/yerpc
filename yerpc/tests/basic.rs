@@ -1,10 +1,8 @@
-use async_std::stream::StreamExt;
+use futures_util::StreamExt;
 use yerpc::{rpc, RpcSession};
 
-#[async_std::test]
+#[tokio::test]
 async fn basic() -> anyhow::Result<()> {
-    assert_eq!(1, 1, "it works");
-
     struct Api {}
 
     #[rpc(all_positional)]
@@ -16,21 +14,22 @@ async fn basic() -> anyhow::Result<()> {
 
     let (session, mut out_rx) = RpcSession::create(Api {});
 
-    let req = r#"{"jsonrpc":"2.0","method":"upper","params":["foo"],"id":1}"#;
+    let req = r#"{"jsonrpc":"2.0","method":"upper","params":["foo"],"id":7}"#;
     session.handle_incoming(req).await;
     let out = out_rx.next().await.unwrap();
     let out = serde_json::to_string(&out).unwrap();
-    assert_eq!(out, r#"{"jsonrpc":"2.0","id":1,"result":"FOO"}"#);
+    assert_eq!(out, r#"{"jsonrpc":"2.0","id":7,"result":"FOO"}"#);
+
     let client = session.client().clone();
-    async_std::task::spawn(async move {
+    tokio::spawn(async move {
         let out = out_rx.next().await.unwrap();
         let out = serde_json::to_string(&out).unwrap();
         assert_eq!(
             out,
-            r#"{"jsonrpc":"2.0","method":"bar","params":["woo"],"id":0}"#
+            r#"{"jsonrpc":"2.0","method":"bar","params":["woo"],"id":1}"#
         );
         session
-            .handle_incoming(r#"{"jsonrpc":"2.0","id":0,"result":"boo"}"#)
+            .handle_incoming(r#"{"jsonrpc":"2.0","id":1,"result":"boo"}"#)
             .await;
     });
     let res = client.send_request("bar", Some(&["woo"])).await.unwrap();

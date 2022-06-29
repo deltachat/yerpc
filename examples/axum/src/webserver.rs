@@ -9,9 +9,10 @@ use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::sync::RwLock;
+use tower_http::trace::TraceLayer;
+use yerpc::axum::handle_ws_rpc;
 use yerpc::typescript::TypeDef;
 use yerpc::{rpc, OutReceiver, RpcClient, RpcSession};
-use yerpc_axum::handle_ws_rpc;
 
 mod emitter;
 use emitter::EventEmitter;
@@ -134,15 +135,16 @@ impl Session {
 
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
-    env_logger::init();
+    tracing_subscriber::fmt::init();
     let backend = Backend::new();
     let app = Router::new()
         .route("/rpc", get(handler))
+        .layer(TraceLayer::new_for_http())
         .layer(Extension(backend));
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
-    eprintln!("listening on {}", addr);
+    let addr = SocketAddr::from(([127, 0, 0, 1], 20808));
+    println!("listening on {}", addr);
     axum::Server::bind(&addr)
-        .serve(app.into_make_service())
+        .serve(app.into_make_service_with_connect_info::<SocketAddr>())
         .await
         .unwrap();
 
@@ -155,5 +157,6 @@ async fn handler(
     ConnectInfo(addr): ConnectInfo<SocketAddr>,
 ) -> Response {
     let (session, out_channel) = backend.session(addr);
-    handle_ws_rpc(ws, out_channel, session).await
+    let res = handle_ws_rpc(ws, out_channel, session).await;
+    res
 }

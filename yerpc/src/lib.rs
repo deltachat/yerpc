@@ -7,9 +7,12 @@ mod requests;
 pub mod typescript;
 mod version;
 
-pub use requests::*;
+pub use requests::{OutReceiver, RpcClient, RpcSession, RpcSessionSink};
 pub use typescript::TypeDef;
 pub use version::Version;
+
+mod integrations;
+pub use integrations::*;
 
 #[async_trait]
 pub trait RpcServer: Sync + Send + 'static {
@@ -24,6 +27,8 @@ pub trait RpcServer: Sync + Send + 'static {
         Err(Error::new(Error::METHOD_NOT_FOUND, "Method not found"))
     }
 }
+
+impl RpcServer for () {}
 
 pub type Id = u32;
 pub type Result<T> = std::result::Result<T, Error>;

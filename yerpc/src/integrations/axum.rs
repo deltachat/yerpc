@@ -1,9 +1,9 @@
+use crate::{OutReceiver, RpcServer, RpcSession};
 use axum::{
     extract::ws::{Message, WebSocket, WebSocketUpgrade},
     response::Response,
 };
 use futures_util::StreamExt;
-use yerpc::{OutReceiver, RpcServer, RpcSession};
 
 pub async fn handle_ws_rpc<T: RpcServer>(
     ws: WebSocketUpgrade,

@@ -1,5 +1,5 @@
 import WebSocket from "isomorphic-ws";
-import { Request, Message, Error, Params } from "./jsonrpc.js";
+import { Message, Error } from "./jsonrpc.js";
 import { BaseTransport } from "./client.js";
 import { Emitter, EventsT } from "./util/emitter.js";
 
@@ -17,6 +17,12 @@ export interface WebsocketEvents extends EventsT {
 
 export class WebsocketTransport extends BaseTransport {
   _socket: ReconnectingWebsocket;
+  get reconnectAttempts () {
+    return this._socket.reconnectAttempts
+  }
+  get connected () {
+    return this._socket.connected
+  }
   constructor(public url: string, options?: WebsocketOptions) {
     super();
     const onmessage = (event: WebSocket.MessageEvent) => {
@@ -45,7 +51,7 @@ class ReconnectingWebsocket extends Emitter<WebsocketEvents> {
 
   private preopenQueue: string[] = [];
   private _connected = false;
-  private reconnectAttempts = 0;
+  private _reconnectAttempts = 0;
 
   onmessage: (event: WebSocket.MessageEvent) => void;
   closed = false;
@@ -66,6 +72,10 @@ class ReconnectingWebsocket extends Emitter<WebsocketEvents> {
     this._reconnect();
   }
 
+  get reconnectAttempts () {
+    return this._reconnectAttempts
+  }
+
   private _reconnect() {
     if (this.closed) return;
     let resolveReady!: (_: void) => void;
@@ -74,12 +84,12 @@ class ReconnectingWebsocket extends Emitter<WebsocketEvents> {
     this.socket = new WebSocket(this.url);
     this.socket.onmessage = this.onmessage.bind(this);
     this.socket.onopen = (_event) => {
-      this.emit("connect");
-      this.reconnectAttempts = 0;
+      this._reconnectAttempts = 0;
       this._connected = true;
       while (this.preopenQueue.length) {
         this.socket.send(this.preopenQueue.shift() as string);
       }
+      this.emit("connect");
       resolveReady();
     };
     this.socket.onerror = (error) => {
@@ -91,18 +101,18 @@ class ReconnectingWebsocket extends Emitter<WebsocketEvents> {
       this.emit("disconnect");
       const wait = Math.min(
         this.options.reconnectInterval *
-          Math.pow(this.options.reconnectDecay, this.reconnectAttempts),
+          Math.pow(this.options.reconnectDecay, this._reconnectAttempts),
         this.options.maxReconnectInterval
       );
       setTimeout(() => {
-        this.reconnectAttempts += 1;
+        this._reconnectAttempts += 1;
         this._reconnect();
       }, wait);
     };
   }
 
   get connected(): boolean {
-    return this._connected;
+    return this._connected
   }
 
   send(message: string): void {

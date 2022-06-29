@@ -1,6 +1,7 @@
 use crate::{Error, Message, Params, Request, Response, RpcServer, Version};
 use async_mutex::Mutex;
-use futures::{channel::oneshot, Future, Sink};
+use futures::channel::oneshot;
+use futures_util::{Future, Sink};
 use serde::Serialize;
 use std::io;
 use std::{
@@ -156,7 +157,6 @@ impl RpcClient {
     }
 }
 
-#[derive(Default)]
 pub struct PendingRequests {
     next_request_id: usize,
     pending_requests: HashMap<usize, oneshot::Sender<Response>>,
@@ -165,7 +165,10 @@ pub struct PendingRequests {
 
 impl PendingRequests {
     pub fn new() -> Self {
-        Self::default()
+        Self {
+            next_request_id: 1,
+            pending_requests: Default::default(),
+        }
     }
     pub fn insert(
         &mut self,

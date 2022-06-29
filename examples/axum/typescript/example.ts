@@ -2,22 +2,35 @@ import { RawClient } from "./generated/client";
 import { ChatMessage } from "./generated/types";
 import { WebsocketTransport, Request } from "yerpc";
 
+const USER_COLOR = '#'+(Math.random().toString(16)+'00000').slice(2,8)
+
 window.addEventListener("DOMContentLoaded", (_event) => {
-  run();
+  run().catch(err => {
+    console.error(err)
+    document.getElementById("status")!.innerHTML = `Error: ${String(err)}`
+  });
 });
 async function run() {
-  const transport = new WebsocketTransport("ws://localhost:20808/ws");
+  const url = "ws://localhost:20808/rpc"
+  const transport = new WebsocketTransport(url);
   const client = new RawClient(transport);
 
-  transport.on("connect", () => {
-    document.getElementById("status")!.innerHTML = "connected!"
-  })
-  transport.on("disconnect", () => {
-    document.getElementById("status")!.innerHTML = "disconnected!"
-  })
-  transport.on("error", (err: Error) => {
-    document.getElementById("status")!.innerHTML = `Error: ${String(err)}`
-  })
+  const form = document.getElementById("form") as HTMLFormElement;
+  form.onsubmit = async (ev) => {
+    ev.preventDefault();
+    const message = parseMessageFromForm(form);
+    if (message) await client.send(message);
+  };
+
+  const updateStatus = (err?: Error) => {
+    let status = `<strong>connected: ${transport.connected}</strong> <small>(url: ${transport.url}, reconnect attempts: ${transport.reconnectAttempts})</small>`
+    if (err) status += `<div><strong>Error:</strong> ${String(err)}</div>`
+    document.getElementById("status")!.innerHTML = status
+  }
+
+  transport.on("connect", updateStatus)
+  transport.on("disconnect", updateStatus)
+  transport.on("error", updateStatus)
   transport.on("request", (request: Request) => {
     const message = request.params as ChatMessage;
     appendMessageToLog(message);
@@ -26,12 +39,6 @@ async function run() {
   const messages = await client.list();
   messages.forEach(appendMessageToLog);
 
-  const form = document.getElementById("form") as HTMLFormElement;
-  form.onsubmit = async (ev) => {
-    ev.preventDefault();
-    const message = parseMessageFromForm(form);
-    if (message) await client.send(message);
-  };
 }
 
 function parseMessageFromForm(form: HTMLFormElement): null | ChatMessage {
@@ -43,13 +50,13 @@ function parseMessageFromForm(form: HTMLFormElement): null | ChatMessage {
     content: content as string,
     user: {
       name: name as string,
-      color: "black",
+      color: USER_COLOR
     },
   };
 }
 
 function appendMessageToLog(message: ChatMessage) {
   const el = document.createElement("li");
-  el.innerText = `${message.user.name}: ${message.content}`;
-  document.getElementById("log")!.appendChild(el);
+  el.innerHTML = `<strong style="color: ${message.user.color}">${message.user.name}:</strong> ${message.content}`;
+  document.getElementById("log")!.prepend(el);
 }

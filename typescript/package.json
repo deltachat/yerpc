@@ -1,17 +1,17 @@
 {
   "name": "yerpc",
   "type": "module",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "author": "Franz Heinzmann <Frando>",
   "license": "Apache-2.0 or MIT",
-  "main": "./typescript/dist/index.js",
+  "main": "./dist/index.js",
   "files": [
-    "typescript/**"
+    "**"
   ],
   "scripts": {
-    "build": "tsc -p ./typescript",
-    "lint": "prettier --check typescript/**.ts",
-    "lint:fix": "prettier --write typescript/**.ts"
+    "build": "tsc",
+    "lint": "prettier --check ./**.ts",
+    "lint:fix": "prettier --write ./**.ts"
   },
   "dependencies": {
     "@types/ws": "^8.2.2",

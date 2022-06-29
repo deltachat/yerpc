@@ -1,11 +1,20 @@
 <!DOCTYPE html>
 <html>
-<script type="module" src="dist/example.bundle.js"></script>
-<div id="status"></div>
-<form id="form">
-  <input placeholder="name..." name="name">
-  <input placeholder="message..." name="content">
-  <button type="submit">send</button>
-</form>
-<ul id="log"></ul>
+  <head>
+    <script type="module" src="dist/example.bundle.js"></script>
+    <title>yerpc-axum chat example</title>
+    <style>body { font-family: sans-serif; }</style>
+  </head>
+  <body>
+    <h1>yerpc-axum chat example</h1>
+    <div id="status"></div>
+    <h2>send a chat message</h2>
+    <form id="form">
+      <input placeholder="name..." name="name">
+      <input placeholder="message..." name="content">
+      <button type="submit">send</button>
+    </form>
+    <h2>all messages</h2>
+    <ul id="log"></ul>
+  </body>
 </html>

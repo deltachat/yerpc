@@ -1,6 +1,6 @@
 [package]
 name = "yerpc"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 license = "Apache-2.0/MIT"
 repository = "https://github.com/Frando/yerpc"
@@ -18,14 +18,25 @@ serde = { version = "1.0.136", features = ["derive"] }
 serde_json = "1.0.79"
 log = "0.4.16"
 typescript-type-def = { version = "0.5.3", features = ["json_value"] }
-anyhow = { version = "1.0.57", optional = true }
 futures = "0.3.21"
 async-channel = "1.6.1"
 async-mutex = "1.4.0"
 
+# optional dependencies
+anyhow = { version = "1.0.57", optional = true }
+axum = { version = "0.5.9", features = ["ws"], optional = true }
+tokio-tungstenite = { version = "0.17", optional = true }
+tokio = { version = "1.19.2", features = ["rt", "macros"], optional = true }
+futures-util = "0.3.21"
+
 [features]
-anyhow_expose = []
+anyhow_expose = ["anyhow"]
+support-axum = ["axum", "tokio", "anyhow"]
+support-tungstenite = ["tokio", "tokio-tungstenite", "anyhow"]
 
 [dev-dependencies]
-async-std = { version = "1.11.0", features = ["attributes"] }
 anyhow = "1.0.57"
+axum = { version = "0.5.9", features = ["ws"] }
+tokio-tungstenite = { version = "0.17" }
+tokio = { version = "1.19.2", features = ["rt", "macros"] }
+url = "2.2.2"
