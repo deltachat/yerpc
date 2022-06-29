@@ -2559,6 +2559,7 @@ dependencies = [
  "serde_json",
  "tokio",
  "tokio-tungstenite",
+ "tracing",
  "typescript-type-def",
  "url",
  "yerpc_derive",
