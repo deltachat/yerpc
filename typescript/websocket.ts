@@ -9,6 +9,8 @@ type WebsocketOptions = {
   maxReconnectInterval: number;
 };
 
+export type WebSocketErrorEvent = WebSocket.ErrorEvent
+
 export interface WebsocketEvents extends EventsT {
   connect: () => void;
   disconnect: () => void;

@@ -1,6 +1,6 @@
 import { RawClient } from "./generated/client";
 import { ChatMessage } from "./generated/types";
-import { WebsocketTransport, Request } from "yerpc";
+import { WebsocketTransport, WebSocketErrorEvent, Request } from "yerpc";
 
 const USER_COLOR = '#'+(Math.random().toString(16)+'00000').slice(2,8)
 
@@ -22,7 +22,7 @@ async function run() {
     if (message) await client.send(message);
   };
 
-  const updateStatus = (err?: Error) => {
+  const updateStatus = (err?: WebSocketErrorEvent) => {
     let status = `<strong>connected: ${transport.connected}</strong> <small>(url: ${transport.url}, reconnect attempts: ${transport.reconnectAttempts})</small>`
     if (err) status += `<div><strong>Error:</strong> ${String(err)}</div>`
     document.getElementById("status")!.innerHTML = status
