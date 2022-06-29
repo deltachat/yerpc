@@ -25,6 +25,8 @@ export abstract class BaseTransport<T = {}>
     throw new Error("_send method not implemented");
   }
 
+  close() {}
+
   protected _onmessage(message: Message): void {
     if ((message as Request).method) {
       const request = message as Request;

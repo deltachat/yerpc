@@ -44,6 +44,10 @@ export class WebsocketTransport extends BaseTransport<WebsocketEvents> {
     const serialized = JSON.stringify(message);
     this._socket.send(serialized);
   }
+
+  close() {
+    this._socket.close()
+  }
 }
 
 class ReconnectingWebsocket extends Emitter<WebsocketEvents> {
