@@ -80,7 +80,7 @@ fn parse_doc_comment(attrs: &[syn::Attribute]) -> Option<String> {
         }
     }
     if !parts.is_empty() {
-        Some(parts.join("\n").into())
+        Some(parts.join("\n"))
     } else {
         None
     }

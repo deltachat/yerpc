@@ -94,7 +94,7 @@ impl Method {
         };
         let docs = if let Some(docs) = &self.docs {
             let docs = docs
-                .split("\n")
+                .split('\n')
                 .map(|s| format!("   *{}\n", s))
                 .collect::<String>();
             format!("  /**\n{}   */", docs)

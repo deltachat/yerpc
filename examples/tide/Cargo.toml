@@ -1,5 +1,5 @@
 [package]
-name = "yerpc_example_webserver_tide"
+name = "yerpc_example_tide"
 version = "0.1.0"
 edition = "2021"
 
@@ -20,7 +20,7 @@ futures = "0.3.21"
 env_logger = "0.9.0"
 log = "0.4.16"
 async-trait = "0.1.53"
-typescript-type-def = { git = "https://github.com/Frando/rust-typescript-type-def", branch = "yerpc", features = ["json_value"] }
+typescript-type-def = { version = "0.5.3", features = ["json_value"] }
 async-broadcast = "0.4.0"
 yerpc = { path  = "../../yerpc", features = ["anyhow"]}
 yerpc-tide = { path  = "../../yerpc-tide" }
