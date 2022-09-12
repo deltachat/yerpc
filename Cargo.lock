@@ -2545,7 +2545,7 @@ checksum = "c811ca4a8c853ef420abd8592ba53ddbbac90410fab6903b3e79972a631f7680"
 
 [[package]]
 name = "yerpc"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "anyhow",
  "async-channel",
