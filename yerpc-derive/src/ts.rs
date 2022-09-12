@@ -67,6 +67,15 @@ pub(crate) fn generate_typescript_generator(info: &RpcInfo) -> TokenStream {
 
     let ts_base = include_str!("client.ts");
 
+    let mut all_types: Vec<String> = gen_types
+        .clone()
+        .into_iter()
+        .map(|ts| ts.to_string())
+        .collect();
+    all_types.sort();
+    all_types.dedup();
+    let all_types: Vec<TokenStream> = all_types.into_iter().map(|s| s.parse().unwrap()).collect();
+
     quote! {
         /// Generate typescript bindings for the JSON-RPC API.
         #[cfg(test)]
@@ -83,7 +92,7 @@ pub(crate) fn generate_typescript_generator(info: &RpcInfo) -> TokenStream {
             // Create helper type with all exported types.
             // #(#gen_definitions)*
             #[derive(TypeDef)]
-            struct __AllTyps(#(#gen_types),*);
+            struct __AllTyps(#(#all_types),*);
             // Write typescript types to file.
             export_types_to_file::<__AllTyps>(&outdir.join("types.ts"), None).expect("Failed to write TS out");
             export_types_to_file::<::yerpc::Message>(&outdir.join("jsonrpc.ts"), None).expect("Failed to write TS out");
