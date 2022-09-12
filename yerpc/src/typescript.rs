@@ -15,10 +15,9 @@ pub fn export_types_to_file<T: TypeDef>(
     path: &Path,
     options: Option<DefinitionFileOptions>,
 ) -> io::Result<()> {
-    let options = options.unwrap_or_else(|| {
-        let mut options = DefinitionFileOptions::default();
-        options.root_namespace = None;
-        options
+    let options = options.unwrap_or_else(|| DefinitionFileOptions {
+        root_namespace: None,
+        ..Default::default()
     });
     let mut file = std::fs::File::create(&path)?;
     write_definition_file::<_, T>(&mut file, options)?;

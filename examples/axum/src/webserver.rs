@@ -157,6 +157,5 @@ async fn handler(
     ConnectInfo(addr): ConnectInfo<SocketAddr>,
 ) -> Response {
     let (session, out_channel) = backend.session(addr);
-    let res = handle_ws_rpc(ws, out_channel, session).await;
-    res
+    handle_ws_rpc(ws, out_channel, session).await
 }
