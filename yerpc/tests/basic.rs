@@ -7,12 +7,22 @@ async fn basic() -> anyhow::Result<()> {
 
     #[rpc(all_positional)]
     impl Api {
+        pub async fn constant(&self) -> String {
+            "example".to_string()
+        }
+
         pub async fn upper(&self, text: String) -> String {
             text.to_uppercase()
         }
     }
 
     let (session, mut out_rx) = RpcSession::create(Api {});
+
+    let req = r#"{"jsonrpc":"2.0","method":"constant","id":3}"#;
+    session.handle_incoming(req).await;
+    let out = out_rx.next().await.unwrap();
+    let out = serde_json::to_string(&out).unwrap();
+    assert_eq!(out, r#"{"jsonrpc":"2.0","id":3,"result":"example"}"#);
 
     let req = r#"{"jsonrpc":"2.0","method":"upper","params":["foo"],"id":7}"#;
     session.handle_incoming(req).await;

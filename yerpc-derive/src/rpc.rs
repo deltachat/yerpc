@@ -17,7 +17,12 @@ pub(crate) fn generate_rpc_impl(info: &RpcInfo) -> TokenStream {
                 let inputs =
                     (0..n_inputs).map(|_| quote!(serde_json::from_value(params.next().unwrap())?));
                 quote!(
-                    let params: Vec<serde_json::Value> = ::serde_json::from_value(params)?;
+                    let params: Vec<serde_json::Value> =
+                    if params.is_null() {
+                        Vec::new()
+                    } else {
+                        ::serde_json::from_value(params)?
+                    };
                     if params.len() != #n_inputs {
                         return Err(::yerpc::Error::invalid_args_len(#n_inputs));
                     }
