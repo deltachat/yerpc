@@ -5,6 +5,7 @@ use quote::quote;
 pub(crate) fn generate_typescript_generator(info: &RpcInfo) -> TokenStream {
     let mut gen_types = vec![];
     let mut gen_methods = vec![];
+    let mut raw_gen_methods = vec![];
     for method in &info.methods {
         let (is_positional, gen_args) = match &method.input {
             Inputs::Positional(ref inputs) => {
@@ -53,6 +54,11 @@ pub(crate) fn generate_typescript_generator(info: &RpcInfo) -> TokenStream {
                 let args = vec![#(#gen_args),*];
                 let method = Method::new(#ts_name, #rpc_name, args, #gen_output, #is_notification, #is_positional, #docs);
                 out.push_str(&method.to_string(root_namespace));
+        ));
+        raw_gen_methods.push(quote!(
+            let args = vec![#(#gen_args),*];
+            let method = Method::new(#ts_name, #rpc_name, args, #gen_output, #is_notification, #is_positional, #docs);
+            out.push(method);
         ));
     }
 
@@ -103,6 +109,16 @@ pub(crate) fn generate_typescript_generator(info: &RpcInfo) -> TokenStream {
             #(#gen_methods)*
             let ts_module = #ts_base.replace("#methods", &out);
             fs::write(&outdir.join("client.ts"), &ts_module).expect("Failed to write TS bindings");
+        }
+
+        // #[cfg(test)]
+        /** exposes the methods so you can generate other stuff from it */
+        pub fn raw_ts_binding_methods()-> Vec<::yerpc::typescript::Method> {
+            use ::yerpc::typescript::type_def::TypeDef;
+            use ::yerpc::typescript::Method;
+            let mut out:Vec<Method> = vec![];
+            #(#raw_gen_methods)*
+            out
         }
     }
 }
