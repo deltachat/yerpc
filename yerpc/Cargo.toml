@@ -33,6 +33,7 @@ axum = { version = "0.6.6", features = ["ws"], optional = true }
 tokio-tungstenite = { version = "0.17", optional = true }
 tokio = { version = "1.19.2", features = ["rt", "macros"], optional = true }
 tracing = { version = "0.1.35", optional = true }
+schemars = "0.8.11"
 
 [features]
 anyhow_expose = ["anyhow"]

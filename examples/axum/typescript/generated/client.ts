@@ -20,7 +20,7 @@ export class RawClient {
    * Pass the message to send.
    */
   public send(message: T.ChatMessage): Promise<T.Usize> {
-    return (this._transport.request('send', [message] as RPC.Params)) as Promise<T.Usize>;
+    return (this._transport.request('send', message as RPC.Params)) as Promise<T.Usize>;
   }
 
   /**
