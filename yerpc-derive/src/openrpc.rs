@@ -23,7 +23,7 @@ fn generate_param(input: &Input, i: usize) -> TokenStream {
 fn generate_method(method: &RemoteProcedure) -> TokenStream {
     let (params, param_structure) = match &method.input {
         Inputs::Positional(ref inputs) => {
-            let params = inputs.iter().enumerate().map(|(i, input)| generate_param(&input, i)).collect::<Vec<_>>();
+            let params = inputs.iter().enumerate().map(|(i, input)| generate_param(input, i)).collect::<Vec<_>>();
             let params = quote!(vec![#(#params),*]);
             let structure = quote!(::yerpc::openrpc::ParamStructure::ByPosition);
             (params, structure)
@@ -97,7 +97,7 @@ pub(crate) fn generate_openrpc_generator(info: &RpcInfo) -> TokenStream {
     let outdir = std::path::PathBuf::from(&manifest_dir).join(&outdir_path);
     let outdir = outdir.to_str().unwrap();
 
-    let doc_spec = generate_doc(&info);
+    let doc_spec = generate_doc(info);
 
     quote! {
         /// Generate typescript bindings for the JSON-RPC API.
