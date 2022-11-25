@@ -40,6 +40,7 @@ pub struct Param {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     pub schema: SchemaObject,
+    pub required: bool
 }
 
 pub fn object_schema_to_params<T: JsonSchema>() -> anyhow::Result<Vec<Param>> {
@@ -54,6 +55,7 @@ pub fn object_schema_to_params<T: JsonSchema>() -> anyhow::Result<Vec<Param>> {
             name: key.to_string(),
             schema: schema.clone().into_object(),
             description: None,
+            required: true
         });
     }
     Ok(params)
