@@ -19,6 +19,7 @@ fn generate_param(input: &Input, i: usize) -> TokenStream {
             name: #name.to_string(),
             description: None,
             schema: ::yerpc::openrpc::generate_schema::<#ty>(),
+            required: true
         }
 
     }
