@@ -3,10 +3,14 @@ use serde::{Deserialize, Serialize};
 
 pub use yerpc_derive::rpc;
 
+#[cfg(feature = "openrpc")]
+pub mod openrpc;
 mod requests;
 pub mod typescript;
 mod version;
 
+#[cfg(feature = "openrpc")]
+pub use openrpc::JsonSchema;
 pub use requests::{OutReceiver, RpcClient, RpcSession, RpcSessionSink};
 pub use typescript::TypeDef;
 pub use version::Version;
@@ -127,6 +131,7 @@ impl Response {
 }
 
 #[derive(Serialize, Deserialize, Debug, TypeDef)]
+#[cfg_attr(feature = "openrpc", derive(JsonSchema))]
 pub struct Error {
     pub code: i32,
     pub message: String,

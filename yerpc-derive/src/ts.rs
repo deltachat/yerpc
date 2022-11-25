@@ -2,7 +2,7 @@ use crate::{util::extract_result_ty, Inputs, RpcInfo};
 use convert_case::{Case, Casing};
 use proc_macro2::TokenStream;
 use quote::quote;
-pub(crate) fn generate_typescript_generator(info: &RpcInfo) -> TokenStream {
+pub(crate) fn generate_typescript_generator(info: &RpcInfo, outdir_path: &String) -> TokenStream {
     let mut gen_types = vec![];
     let mut gen_methods = vec![];
     for method in &info.methods {
@@ -56,11 +56,6 @@ pub(crate) fn generate_typescript_generator(info: &RpcInfo) -> TokenStream {
         ));
     }
 
-    let outdir_path = info
-        .attr_args
-        .ts_outdir
-        .clone()
-        .unwrap_or_else(|| "typescript/generated".to_string());
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set");
     let outdir = std::path::PathBuf::from(&manifest_dir).join(outdir_path);
     let outdir = outdir.to_str().unwrap();

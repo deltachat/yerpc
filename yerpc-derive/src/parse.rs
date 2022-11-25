@@ -8,7 +8,7 @@ use crate::RootAttrArgs;
 #[derive(Debug)]
 pub(crate) struct RpcInfo<'s> {
     pub self_ty: &'s Type,
-    pub attr_args: &'s RootAttrArgs,
+    pub _attr_args: &'s RootAttrArgs,
     pub methods: Vec<RemoteProcedure<'s>>,
     pub generics: &'s Generics,
 }
@@ -27,7 +27,7 @@ impl<'s> RpcInfo<'s> {
             })
             .collect();
         Self {
-            attr_args,
+            _attr_args: attr_args,
             methods,
             self_ty: &input.self_ty,
             generics: &input.generics,

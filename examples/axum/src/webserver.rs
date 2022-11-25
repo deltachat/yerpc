@@ -5,6 +5,7 @@ use axum::{
     Extension, Router,
 };
 use futures::stream::StreamExt;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -17,19 +18,19 @@ use yerpc::{rpc, OutReceiver, RpcClient, RpcSession};
 mod emitter;
 use emitter::EventEmitter;
 
-#[derive(Serialize, Deserialize, TypeDef, Clone, Debug)]
+#[derive(Serialize, Deserialize, TypeDef, JsonSchema, Clone, Debug)]
 struct User {
     name: String,
     color: String,
 }
 
-#[derive(Serialize, Deserialize, TypeDef, Clone, Debug)]
+#[derive(Serialize, Deserialize, TypeDef, JsonSchema, Clone, Debug)]
 struct ChatMessage {
     content: String,
     user: User,
 }
 
-#[derive(Serialize, Deserialize, TypeDef, Clone, Debug)]
+#[derive(Serialize, Deserialize, TypeDef, JsonSchema, Clone, Debug)]
 #[serde(tag = "type")]
 enum Event {
     Message(ChatMessage),
@@ -114,7 +115,7 @@ impl Session {
     }
 }
 
-#[rpc]
+#[rpc(ts_outdir = "typescript/generated", openrpc_outdir = ".")]
 impl Session {
     /// Send a chat message.
     ///
