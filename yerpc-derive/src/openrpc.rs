@@ -56,6 +56,7 @@ fn generate_method(method: &RemoteProcedure) -> TokenStream {
             name: #output_name.to_string(),
             description: None,
             schema: ::yerpc::openrpc::generate_schema::<#output_ty>(),
+            required: true
         }
     };
     quote! {
