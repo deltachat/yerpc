@@ -1,10 +1,12 @@
 pub use async_trait::async_trait;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 pub use yerpc_derive::rpc;
 
 mod requests;
 pub mod typescript;
+pub mod openrpc;
 mod version;
 
 pub use requests::{OutReceiver, RpcClient, RpcSession, RpcSessionSink};
@@ -126,7 +128,7 @@ impl Response {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, TypeDef)]
+#[derive(Serialize, Deserialize, Debug, TypeDef, JsonSchema)]
 pub struct Error {
     pub code: i32,
     pub message: String,

@@ -8,6 +8,7 @@ use futures::stream::StreamExt;
 use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 use std::sync::Arc;
+use schemars::JsonSchema;
 use tokio::sync::RwLock;
 use tower_http::trace::TraceLayer;
 use yerpc::axum::handle_ws_rpc;
@@ -17,19 +18,19 @@ use yerpc::{rpc, OutReceiver, RpcClient, RpcSession};
 mod emitter;
 use emitter::EventEmitter;
 
-#[derive(Serialize, Deserialize, TypeDef, Clone, Debug)]
+#[derive(Serialize, Deserialize, TypeDef, JsonSchema, Clone, Debug)]
 struct User {
     name: String,
     color: String,
 }
 
-#[derive(Serialize, Deserialize, TypeDef, Clone, Debug)]
+#[derive(Serialize, Deserialize, TypeDef, JsonSchema, Clone, Debug)]
 struct ChatMessage {
     content: String,
     user: User,
 }
 
-#[derive(Serialize, Deserialize, TypeDef, Clone, Debug)]
+#[derive(Serialize, Deserialize, TypeDef, JsonSchema, Clone, Debug)]
 #[serde(tag = "type")]
 enum Event {
     Message(ChatMessage),

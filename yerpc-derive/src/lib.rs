@@ -1,5 +1,6 @@
 extern crate darling;
 use darling::{FromAttributes, FromMeta};
+use openrpc::generate_openrpc_generator;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, AttributeArgs, Item};
@@ -7,6 +8,7 @@ use syn::{parse_macro_input, AttributeArgs, Item};
 mod parse;
 mod rpc;
 mod ts;
+mod openrpc;
 pub(crate) use parse::*;
 pub(crate) use rpc::*;
 pub(crate) use ts::*;
@@ -25,10 +27,16 @@ pub fn rpc(attr: TokenStream, tokens: TokenStream) -> TokenStream {
             let info = RpcInfo::from_impl(&attr_args, input);
             let ts_impl = generate_typescript_generator(&info);
             let rpc_impl = generate_rpc_impl(&info);
+            let openrpc_impl = if let Some(_openrpc_path) = attr_args.openrpc_path.as_ref() {
+                generate_openrpc_generator(&info)
+            } else {
+                quote!()
+            };
             quote! {
                 #item
                 #rpc_impl
                 #ts_impl
+                #openrpc_impl
             }
         }
         Item::Fn(_) => quote!(#item),
@@ -50,6 +58,8 @@ pub(crate) struct RootAttrArgs {
     /// Set the path where typescript definitions are written to (relative to the crate root).
     /// Defaults to `ts-bindings`.
     ts_outdir: Option<String>,
+
+    openrpc_path: Option<String>
 }
 
 #[derive(FromAttributes, Debug, Default)]
