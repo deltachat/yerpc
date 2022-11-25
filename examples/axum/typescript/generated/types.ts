@@ -3,4 +3,4 @@
 export type User={"name":string;"color":string;};
 export type ChatMessage={"content":string;"user":User;};
 export type Usize=number;
-export type __AllTyps=[ChatMessage,Usize,(ChatMessage)[]];
+export type __AllTyps=[ChatMessage,(ChatMessage)[],Usize];

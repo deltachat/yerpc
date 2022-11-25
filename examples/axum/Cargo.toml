@@ -25,3 +25,4 @@ tokio = { version = "1.19.2", features = ["full"] }
 tracing = "0.1.35"
 tracing-subscriber = "0.3.11"
 tower-http = { version = "0.3.0", features = ["trace"] }
+schemars = "0.8.11"
