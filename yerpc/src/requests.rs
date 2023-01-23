@@ -191,7 +191,7 @@ impl PendingRequests {
     }
     pub fn handle_response(&mut self, response: Response) {
         if let Some(id) = &response.id {
-            let tx = self.pending_requests.remove(&id);
+            let tx = self.pending_requests.remove(id);
             if let Some(tx) = tx {
                 let _ = tx.send(response);
             }

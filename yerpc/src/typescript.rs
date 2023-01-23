@@ -19,7 +19,7 @@ pub fn export_types_to_file<T: TypeDef>(
         root_namespace: None,
         ..Default::default()
     });
-    let mut file = std::fs::File::create(&path)?;
+    let mut file = std::fs::File::create(path)?;
     write_definition_file::<_, T>(&mut file, options)?;
     Ok(())
 }

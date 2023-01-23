@@ -62,7 +62,7 @@ pub(crate) fn generate_typescript_generator(info: &RpcInfo) -> TokenStream {
         .clone()
         .unwrap_or_else(|| "typescript/generated".to_string());
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set");
-    let outdir = std::path::PathBuf::from(&manifest_dir).join(&outdir_path);
+    let outdir = std::path::PathBuf::from(&manifest_dir).join(outdir_path);
     let outdir = outdir.to_str().unwrap();
 
     let ts_base = include_str!("client.ts");
