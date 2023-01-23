@@ -4,9 +4,9 @@ use serde::{Deserialize, Serialize};
 
 pub use yerpc_derive::rpc;
 
+pub mod openrpc;
 mod requests;
 pub mod typescript;
-pub mod openrpc;
 mod version;
 
 pub use requests::{OutReceiver, RpcClient, RpcSession, RpcSessionSink};

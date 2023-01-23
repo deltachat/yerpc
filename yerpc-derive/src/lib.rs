@@ -5,10 +5,10 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, AttributeArgs, Item};
 
+mod openrpc;
 mod parse;
 mod rpc;
 mod ts;
-mod openrpc;
 pub(crate) use parse::*;
 pub(crate) use rpc::*;
 pub(crate) use ts::*;
@@ -59,7 +59,7 @@ pub(crate) struct RootAttrArgs {
     /// Defaults to `ts-bindings`.
     ts_outdir: Option<String>,
 
-    openrpc_path: Option<String>
+    openrpc_path: Option<String>,
 }
 
 #[derive(FromAttributes, Debug, Default)]
