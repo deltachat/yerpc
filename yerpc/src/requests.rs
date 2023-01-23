@@ -1,4 +1,3 @@
-use crate::{Error, Message, Params, Request, Response, RpcServer, Version};
 use async_mutex::Mutex;
 use futures::channel::oneshot;
 use futures_util::{Future, Sink};
@@ -10,6 +9,8 @@ use std::{
     sync::Arc,
     task::{Context, Poll},
 };
+
+use crate::{Error, Id, Message, Params, Request, Response, RpcServer, Version};
 
 // pub fn create_session(server_impl: impl RpcServer) -> (RpcSession<T>,
 
@@ -64,7 +65,7 @@ impl<T: RpcServer> RpcSession<T> {
             Message::Request(request) => {
                 let params = request.params.map(Params::into_value).unwrap_or_default();
                 let response = match request.id {
-                    None | Some(crate::Id::Number(0)) => {
+                    None | Some(Id::Number(0)) => {
                         match self
                             .server
                             .handle_notification(request.method, params)
@@ -159,7 +160,7 @@ impl RpcClient {
 
 pub struct PendingRequests {
     next_request_id: u32,
-    pending_requests: HashMap<crate::Id, oneshot::Sender<Response>>,
+    pending_requests: HashMap<Id, oneshot::Sender<Response>>,
     // tx: async_channel::Sender<Message>,
 }
 
@@ -175,7 +176,7 @@ impl PendingRequests {
         method: String,
         params: Option<Params>,
     ) -> (Message, oneshot::Receiver<Response>) {
-        let request_id = crate::Id::Number(self.next_request_id);
+        let request_id = Id::Number(self.next_request_id);
         self.next_request_id += 1;
         let (tx, rx) = oneshot::channel();
         self.pending_requests.insert(request_id.clone(), tx);

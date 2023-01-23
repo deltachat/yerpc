@@ -34,7 +34,7 @@ impl RpcServer for () {}
 #[serde(untagged)]
 pub enum Id {
     Number(u32),
-    String(String)
+    String(String),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
