@@ -64,7 +64,7 @@ impl<T: RpcServer> RpcSession<T> {
             Message::Request(request) => {
                 let params = request.params.map(Params::into_value).unwrap_or_default();
                 let response = match request.id {
-                    None | Some(0) => {
+                    None | Some(crate::Id::Number(0)) => {
                         match self
                             .server
                             .handle_notification(request.method, params)
@@ -158,8 +158,8 @@ impl RpcClient {
 }
 
 pub struct PendingRequests {
-    next_request_id: usize,
-    pending_requests: HashMap<usize, oneshot::Sender<Response>>,
+    next_request_id: u32,
+    pending_requests: HashMap<crate::Id, oneshot::Sender<Response>>,
     // tx: async_channel::Sender<Message>,
 }
 
@@ -175,22 +175,22 @@ impl PendingRequests {
         method: String,
         params: Option<Params>,
     ) -> (Message, oneshot::Receiver<Response>) {
-        let request_id = self.next_request_id;
+        let request_id = crate::Id::Number(self.next_request_id);
         self.next_request_id += 1;
         let (tx, rx) = oneshot::channel();
-        self.pending_requests.insert(request_id, tx);
+        self.pending_requests.insert(request_id.clone(), tx);
         let request = Request {
             jsonrpc: Version::V2,
             method,
             params,
-            id: Some(request_id as u32),
+            id: Some(request_id),
         };
         let message = Message::Request(request);
         (message, rx)
     }
     pub fn handle_response(&mut self, response: Response) {
         if let Some(id) = &response.id {
-            let tx = self.pending_requests.remove(&(*id as usize));
+            let tx = self.pending_requests.remove(&id);
             if let Some(tx) = tx {
                 let _ = tx.send(response);
             }

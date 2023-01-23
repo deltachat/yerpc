@@ -30,7 +30,13 @@ pub trait RpcServer: Sync + Send + 'static {
 
 impl RpcServer for () {}
 
-pub type Id = u32;
+#[derive(Serialize, Deserialize, Debug, TypeDef, Eq, Hash, PartialEq, Clone)]
+#[serde(untagged)]
+pub enum Id {
+    Number(u32),
+    String(String)
+}
+
 pub type Result<T> = std::result::Result<T, Error>;
 
 /// Only used for generated TS bindings
