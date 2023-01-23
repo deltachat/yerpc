@@ -1,8 +1,12 @@
-use crate::{util::extract_result_ty, Inputs, RpcInfo, parse::{Input, RemoteProcedure}};
+use crate::{
+    parse::{Input, RemoteProcedure},
+    util::extract_result_ty,
+    Inputs, RpcInfo,
+};
 use convert_case::{Case, Casing};
 use proc_macro2::TokenStream;
-use quote::ToTokens;
 use quote::quote;
+use quote::ToTokens;
 
 fn generate_param(input: &Input, i: usize) -> TokenStream {
     let name = input
@@ -23,17 +27,21 @@ fn generate_param(input: &Input, i: usize) -> TokenStream {
 fn generate_method(method: &RemoteProcedure) -> TokenStream {
     let (params, param_structure) = match &method.input {
         Inputs::Positional(ref inputs) => {
-            let params = inputs.iter().enumerate().map(|(i, input)| generate_param(input, i)).collect::<Vec<_>>();
+            let params = inputs
+                .iter()
+                .enumerate()
+                .map(|(i, input)| generate_param(input, i))
+                .collect::<Vec<_>>();
             let params = quote!(vec![#(#params),*]);
             let structure = quote!(::yerpc::openrpc::ParamStructure::ByPosition);
             (params, structure)
-        },
+        }
         Inputs::Structured(Some(input)) => {
             let ty = &input.ty;
             let params = quote!(::yerpc::openrpc::object_schema_to_params::<#ty>().expect("Invalid parameter structure"));
             let structure = quote!(::yerpc::openrpc::ParamStructure::ByName);
             (params, structure)
-        },
+        }
         Inputs::Structured(None) => {
             let params = quote!(vec![]);
             let structure = quote!(::yerpc::openrpc::ParamStructure::ByPosition);
@@ -48,7 +56,11 @@ fn generate_method(method: &RemoteProcedure) -> TokenStream {
     } else {
         quote!(None)
     };
-    let output_ty = method.output.map(extract_result_ty).map(|ty| quote!(#ty)).unwrap_or(quote!(()));
+    let output_ty = method
+        .output
+        .map(extract_result_ty)
+        .map(|ty| quote!(#ty))
+        .unwrap_or(quote!(()));
     let output_name = format!("{}Result", name).to_case(Case::UpperCamel);
     let result = quote! {
         ::yerpc::openrpc::Param {

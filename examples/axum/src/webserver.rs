@@ -5,10 +5,10 @@ use axum::{
     Extension, Router,
 };
 use futures::stream::StreamExt;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 use std::sync::Arc;
-use schemars::JsonSchema;
 use tokio::sync::RwLock;
 use tower_http::trace::TraceLayer;
 use yerpc::axum::handle_ws_rpc;
