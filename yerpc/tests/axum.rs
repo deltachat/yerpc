@@ -1,4 +1,4 @@
-#[cfg(test)]
+#[cfg(all(test, feature = "support-axum", feature = "support-tungstenite"))]
 mod tests {
     use axum::{
         extract::ws::WebSocketUpgrade, http::StatusCode, response::Response, routing::get, Router,
