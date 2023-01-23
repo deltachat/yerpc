@@ -84,6 +84,7 @@ pub(crate) fn generate_typescript_generator(info: &RpcInfo) -> TokenStream {
             use ::yerpc::typescript::type_def::{TypeDef, type_expr::TypeInfo, DefinitionFileOptions};
             use ::yerpc::typescript::{typedef_to_expr_string, export_types_to_file, Method};
             use ::std::{fs, path::Path};
+            use ::std::io::Write;
 
             // Create output directory.
             let outdir = Path::new(#outdir);
@@ -95,6 +96,21 @@ pub(crate) fn generate_typescript_generator(info: &RpcInfo) -> TokenStream {
             struct __AllTyps(#(#all_types),*);
             // Write typescript types to file.
             export_types_to_file::<__AllTyps>(&outdir.join("types.ts"), None).expect("Failed to write TS out");
+            // remove __AllTyps ts type from output,
+            // it's only used as a woraround to export all types and is not needed anymore now
+            let new_content = {
+                let string =
+                    ::std::fs::read_to_string(&outdir.join("types.ts")).expect("Failed to find TS out");
+                if let Some(index) = string.find("export type __AllTyps") {
+                    string[..index].to_string()
+                } else {
+                    panic!("did not find __AllTyps in TS out");
+                }
+            };
+            ::std::fs::File::create(&outdir.join("types.ts"))
+                .expect("failed to open TS out")
+                .write_all(new_content.as_bytes())
+                .expect("removing __AllTyps from TS failed");
             export_types_to_file::<::yerpc::Message>(&outdir.join("jsonrpc.ts"), None).expect("Failed to write TS out");
 
             // // Generate a raw client.
