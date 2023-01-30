@@ -65,7 +65,7 @@ impl<T: RpcServer> RpcSession<T> {
             Message::Request(request) => {
                 let params = request.params.map(Params::into_value).unwrap_or_default();
                 let response = match request.id {
-                    None | Some(Id::Number(0)) => {
+                    None => {
                         match self
                             .server
                             .handle_notification(request.method, params)
@@ -135,7 +135,7 @@ impl RpcClient {
         let method = method.to_string();
         let params = downcast_params(params)?;
         let request = Request {
-            jsonrpc: Version::V2,
+            jsonrpc: Some(Version::V2),
             method: method.to_string(),
             params,
             id: None,
@@ -181,7 +181,7 @@ impl PendingRequests {
         let (tx, rx) = oneshot::channel();
         self.pending_requests.insert(request_id.clone(), tx);
         let request = Request {
-            jsonrpc: Version::V2,
+            jsonrpc: Some(Version::V2),
             method,
             params,
             id: Some(request_id),
