@@ -87,16 +87,16 @@ impl Method {
             |output| type_to_expr(output, root_namespace),
         );
         let (output, inner_method) = if !self.is_notification {
-            (format!("Promise<{}>", output), "request")
+            (format!("Promise<{output}>"), "request")
         } else {
             (output, "notification")
         };
         let docs = if let Some(docs) = &self.docs {
             let docs = docs
                 .split('\n')
-                .map(|s| format!("   *{}\n", s))
+                .map(|s| format!("   *{s}\n"))
                 .collect::<String>();
-            format!("  /**\n{}   */", docs)
+            format!("  /**\n{docs}   */")
         } else {
             "".into()
         };

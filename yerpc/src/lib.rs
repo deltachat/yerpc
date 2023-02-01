@@ -176,7 +176,7 @@ impl Error {
     pub fn invalid_args_len(n: usize) -> Self {
         Self::new(
             Error::INVALID_PARAMS,
-            format!("This method takes an array of {} arguments", n),
+            format!("This method takes an array of {n} arguments"),
         )
     }
 
@@ -199,7 +199,7 @@ impl From<serde_json::Error> for Error {
     fn from(error: serde_json::Error) -> Self {
         Self {
             code: Error::PARSE_ERROR,
-            message: format!("{}", error),
+            message: format!("{error}"),
             data: None,
         }
     }
