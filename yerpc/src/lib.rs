@@ -90,7 +90,7 @@ impl TryFrom<serde_json::Value> for Params {
 #[derive(Serialize, Deserialize, Debug, TypeDef)]
 pub struct Request {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub jsonrpc: Option<Version>,
+    pub jsonrpc: Option<Version>, // JSON-RPC 1.0 has no jsonrpc field
     pub method: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub params: Option<Params>,
