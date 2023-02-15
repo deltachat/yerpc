@@ -46,6 +46,11 @@ impl<T: RpcServer> RpcSession<T> {
         RpcSessionSink::Idle(Some(self))
     }
 
+    /// Handles incoming JSON-RPC request.
+    ///
+    /// Blocks until request handler finishes.
+    /// Spawn a task if you want to run the request handler
+    /// concurrently.
     pub async fn handle_incoming(&self, input: &str) {
         let message: Message = match serde_json::from_str(input) {
             Ok(message) => message,
