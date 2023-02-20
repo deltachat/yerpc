@@ -26,7 +26,7 @@ async-mutex = "1.4.0"
 
 # optional dependencies
 anyhow = { version = "1.0.57", optional = true }
-axum = { version = "0.5.9", features = ["ws"], optional = true }
+axum = { version = "0.6.6", features = ["ws"], optional = true }
 tokio-tungstenite = { version = "0.17", optional = true }
 tokio = { version = "1.19.2", features = ["rt", "macros"], optional = true }
 tracing = { version = "0.1.35", optional = true }
@@ -38,7 +38,7 @@ support-tungstenite = ["tokio", "tokio-tungstenite", "anyhow"]
 
 [dev-dependencies]
 anyhow = "1.0.57"
-axum = { version = "0.5.9", features = ["ws"] }
+axum = { version = "0.6.6", features = ["ws"] }
 tokio-tungstenite = { version = "0.17" }
 tokio = { version = "1.19.2", features = ["rt", "macros"] }
 url = "2.2.2"
