@@ -8,8 +8,15 @@
   "files": [
     "**"
   ],
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && esbuild dist/index.js --bundle --packages=external --format=cjs --outfile=dist/index.cjs",
     "lint": "prettier --check ./**.ts",
     "lint:fix": "prettier --write ./**.ts"
   },
@@ -22,6 +29,7 @@
     "ws": "^8.5.0"
   },
   "devDependencies": {
+    "esbuild": "^0.17.9",
     "prettier": "^2.6.2"
   }
 }
