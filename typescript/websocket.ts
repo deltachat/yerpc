@@ -1,5 +1,5 @@
 import WebSocket from "isomorphic-ws";
-import { Message, Error } from "./jsonrpc.js";
+import { Message } from "./jsonrpc.js";
 import { BaseTransport } from "./client.js";
 import { Emitter, EventsT } from "./util/emitter.js";
 

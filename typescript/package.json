@@ -1,9 +1,9 @@
 {
   "name": "yerpc",
   "type": "module",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "author": "Franz Heinzmann <Frando>",
-  "license": "Apache-2.0 or MIT",
+  "license": "MIT OR Apache-2.0",
   "main": "./dist/index.js",
   "files": [
     "**"
@@ -16,7 +16,10 @@
     }
   },
   "scripts": {
-    "build": "tsc && esbuild dist/index.js --bundle --packages=external --format=cjs --outfile=dist/index.cjs",
+    "build": "run-s build:base-types build:tsc build:cjs",
+    "build:base-types": "cargo run -p yerpc --bin generate-base-types ./jsonrpc.ts && prettier --write ./jsonrpc.ts",
+    "build:tsc": "tsc",
+    "build:cjs": "esbuild dist/index.js --bundle --packages=external --format=cjs --outfile=dist/index.cjs",
     "lint": "prettier --check ./**.ts",
     "lint:fix": "prettier --write ./**.ts"
   },
@@ -30,6 +33,7 @@
   },
   "devDependencies": {
     "esbuild": "^0.17.9",
+    "npm-run-all": "^4.1.5",
     "prettier": "^2.6.2"
   }
 }
