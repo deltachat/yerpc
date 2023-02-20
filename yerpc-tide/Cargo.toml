@@ -3,7 +3,8 @@ name = "yerpc-tide"
 version = "0.4.2"
 edition = "2021"
 license = "Apache-2.0/MIT"
-repository = "https://github.com/Frando/yerpc"
+description = "tide integration for the yerpc JSON-RPC library"
+repository = "https://github.com/deltachat/yerpc"
 authors = [
   "Franz Heinzmann <Frando>",
   "Contributors to yerpc"

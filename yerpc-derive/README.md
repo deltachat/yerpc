@@ -1,3 +1,3 @@
 # yerpc-derive
 
-Proc macros for [yerpc](https://github.com/Frando/yerpc).
+Proc macros for [yerpc](https://github.com/deltachat/yerpc).

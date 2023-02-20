@@ -4,7 +4,7 @@ version = "0.4.2"
 edition = "2018"
 description = "Proc macros for yerpc"
 license = "Apache-2.0/MIT"
-repository = "https://github.com/Frando/yerpc"
+repository = "https://github.com/deltachat/yerpc"
 authors = [
   "Franz Heinzmann <Frando>",
   "Contributors to yerpc"
