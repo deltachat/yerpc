@@ -1,7 +1,7 @@
 {
   "name": "yerpc",
   "type": "module",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "author": "Franz Heinzmann <Frando>",
   "license": "MIT OR Apache-2.0",
   "main": "./dist/index.js",
@@ -22,6 +22,7 @@
   },
   "scripts": {
     "build": "run-s build:base-types build:tsc build:cjs",
+    "clean": "rm -r dist",
     "build:base-types": "cargo run -p yerpc --bin generate-base-types ./jsonrpc.ts && prettier --write ./jsonrpc.ts",
     "build:tsc": "tsc",
     "build:cjs": "esbuild dist/index.js --bundle --packages=external --format=cjs --outfile=dist/index.cjs",

@@ -1,2 +1,5 @@
-SANDBOX
 node_modules
+package-lock.json
+SANDBOX
+/target
+yarn.lock

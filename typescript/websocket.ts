@@ -9,7 +9,7 @@ type WebsocketOptions = {
   maxReconnectInterval: number;
 };
 
-export type WebSocketErrorEvent = WebSocket.ErrorEvent
+export type WebSocketErrorEvent = WebSocket.ErrorEvent;
 
 export interface WebsocketEvents extends EventsT {
   connect: () => void;
@@ -19,11 +19,11 @@ export interface WebsocketEvents extends EventsT {
 
 export class WebsocketTransport extends BaseTransport<WebsocketEvents> {
   _socket: ReconnectingWebsocket;
-  get reconnectAttempts () {
-    return this._socket.reconnectAttempts
+  get reconnectAttempts() {
+    return this._socket.reconnectAttempts;
   }
-  get connected () {
-    return this._socket.connected
+  get connected() {
+    return this._socket.connected;
   }
   constructor(public url: string, options?: WebsocketOptions) {
     super();
@@ -46,7 +46,7 @@ export class WebsocketTransport extends BaseTransport<WebsocketEvents> {
   }
 
   close() {
-    this._socket.close()
+    this._socket.close();
   }
 }
 
@@ -78,8 +78,8 @@ class ReconnectingWebsocket extends Emitter<WebsocketEvents> {
     this._reconnect();
   }
 
-  get reconnectAttempts () {
-    return this._reconnectAttempts
+  get reconnectAttempts() {
+    return this._reconnectAttempts;
   }
 
   private _reconnect() {
@@ -118,7 +118,7 @@ class ReconnectingWebsocket extends Emitter<WebsocketEvents> {
   }
 
   get connected(): boolean {
-    return this._connected
+    return this._connected;
   }
 
   send(message: string): void {

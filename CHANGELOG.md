@@ -1,5 +1,10 @@
 ## Unreleased
 
+## 0.4.2
+
+- rust packages are unchanged from 0.4.1
+- removed unneeded files from NPM package
+
 ## 0.4.1
 
 - increase compatibility with jsonrpc 1.0 by allowing `id == 0` and to omit `"jsonrpc":"2.0"` property #31
