@@ -1,5 +1,5 @@
 import { Emitter } from "./util/emitter.js";
-import { Request, Response, Message, Error, Params } from "./jsonrpc.js";
+import { Request, Response, Message, Error, Params, Id } from "./jsonrpc.js";
 
 export interface Transport {
   request: (method: string, params?: Params) => Promise<unknown>;
@@ -7,7 +7,7 @@ export interface Transport {
 }
 
 type RequestMap = Map<
-  number,
+  Id,
   { resolve: (result: unknown) => void; reject: (error: Error) => void }
 >;
 
