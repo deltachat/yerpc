@@ -8,11 +8,11 @@ else
 fi
 
 set -v
-# cargo build
-# cargo test
-# cargo test --all-features
-# cargo publish -p yerpc_derive $dry
-# cargo publish -p yerpc $dry
+cargo build
+cargo test
+cargo test --all-features
+cargo publish -p yerpc_derive $dry
+cargo publish -p yerpc $dry
 cargo publish -p yerpc-tide $dry
 cd typescript
 npm run clean
