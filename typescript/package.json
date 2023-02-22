@@ -1,7 +1,7 @@
 {
   "name": "yerpc",
   "type": "module",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "author": "Franz Heinzmann <Frando>",
   "license": "MIT OR Apache-2.0",
   "main": "./dist/index.js",
@@ -10,9 +10,6 @@
     "url": "https://github.com/deltachat/yerpc"
   },
   "description": "An ergonomic JSON-RPC server library in Rust with autocreated TypeScript client",
-  "files": [
-    "**"
-  ],
   "exports": {
     ".": {
       "require": "./dist/index.cjs",
@@ -27,7 +24,8 @@
     "build:tsc": "tsc",
     "build:cjs": "esbuild dist/index.js --bundle --packages=external --format=cjs --outfile=dist/index.cjs",
     "lint": "prettier --check ./**.ts",
-    "lint:fix": "prettier --write ./**.ts"
+    "lint:fix": "prettier --write ./**.ts",
+    "prepublishOnly": "run-s lint clean build"
   },
   "dependencies": {
     "@types/ws": "^8.2.2",
