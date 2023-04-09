@@ -1,5 +1,4 @@
 pub use async_trait::async_trait;
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 pub use yerpc_derive::rpc;
@@ -11,6 +10,7 @@ mod version;
 
 pub use requests::{OutReceiver, RpcClient, RpcSession, RpcSessionSink};
 pub use typescript::TypeDef;
+pub use openrpc::JsonSchema;
 pub use version::Version;
 
 mod integrations;
