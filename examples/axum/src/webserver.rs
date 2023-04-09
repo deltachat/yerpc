@@ -115,7 +115,7 @@ impl Session {
     }
 }
 
-#[rpc(ts_outdir = "typescript/generated")]
+#[rpc(ts_outdir = "typescript/generated", openrpc_outdir = ".")]
 impl Session {
     /// Send a chat message.
     ///

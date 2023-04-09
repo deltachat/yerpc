@@ -1,0 +1,99 @@
+{
+  "openrpc": "1.0.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Session"
+  },
+  "methods": [
+    {
+      "name": "send",
+      "description": " Send a chat message.\n\n Pass the message to send.",
+      "params": [
+        {
+          "name": "message",
+          "schema": {
+            "title": "ChatMessage",
+            "type": "object",
+            "required": [
+              "content",
+              "user"
+            ],
+            "properties": {
+              "content": {
+                "type": "string"
+              },
+              "user": {
+                "type": "object",
+                "required": [
+                  "color",
+                  "name"
+                ],
+                "properties": {
+                  "color": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        }
+      ],
+      "result": {
+        "name": "SendResult",
+        "schema": {
+          "title": "uint",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "required": true
+      },
+      "paramStructure": "by-position"
+    },
+    {
+      "name": "list",
+      "description": " List chat messages.",
+      "params": [],
+      "result": {
+        "name": "ListResult",
+        "schema": {
+          "title": "Array_of_ChatMessage",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "content",
+              "user"
+            ],
+            "properties": {
+              "content": {
+                "type": "string"
+              },
+              "user": {
+                "type": "object",
+                "required": [
+                  "color",
+                  "name"
+                ],
+                "properties": {
+                  "color": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "required": true
+      },
+      "paramStructure": "by-position"
+    }
+  ]
+}
