@@ -8,9 +8,9 @@ mod requests;
 pub mod typescript;
 mod version;
 
+pub use openrpc::JsonSchema;
 pub use requests::{OutReceiver, RpcClient, RpcSession, RpcSessionSink};
 pub use typescript::TypeDef;
-pub use openrpc::JsonSchema;
 pub use version::Version;
 
 mod integrations;
