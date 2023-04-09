@@ -1,7 +1,7 @@
 //! yerpc version field
 //! (c) Parity Technologies <admin@parity.io>
 //! MIT License
-//! https://github.com/paritytech/yerpc/blob/31ec6d67f2ab338a26f5080af5804960f7ab39e4/core/src/types/version.rs
+//! <https://github.com/paritytech/jsonrpc/blob/31ec6d67f2ab338a26f5080af5804960f7ab39e4/core/src/types/version.rs>
 use serde::de::{self, Visitor};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt;
