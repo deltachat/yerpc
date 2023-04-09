@@ -23,7 +23,7 @@ pub(crate) mod util;
 /// If not set, no typescript definitions will be written.
 /// - `openrpc_outdir: Option<String>` Set the path where openrpc specification file will be written to (relative to the crate root).
 /// If not set, no openrpc definition file will be written.
-/// 
+///
 /// Note that you need to specify atleast one type definition output: `ts_outdir`, `openrpc_outfile` or both.
 ///
 /// ### Method Attribute Arguments:

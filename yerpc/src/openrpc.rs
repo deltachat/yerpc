@@ -1,5 +1,8 @@
-use schemars::{gen::SchemaSettings, schema::SchemaObject, JsonSchema};
+use schemars::{gen::SchemaSettings, schema::SchemaObject};
 use serde::Serialize;
+
+pub use schemars as type_def;
+pub use schemars::JsonSchema;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Doc {
@@ -40,7 +43,7 @@ pub struct Param {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     pub schema: SchemaObject,
-    pub required: bool
+    pub required: bool,
 }
 
 pub fn object_schema_to_params<T: JsonSchema>() -> anyhow::Result<Vec<Param>> {
@@ -55,7 +58,7 @@ pub fn object_schema_to_params<T: JsonSchema>() -> anyhow::Result<Vec<Param>> {
             name: key.to_string(),
             schema: schema.clone().into_object(),
             description: None,
-            required: true
+            required: true,
         });
     }
     Ok(params)
