@@ -1,5 +1,7 @@
 ## Unreleased
 
+- add `RpcSession::server()` method
+
 ## 0.4.2
 
 - rust packages are unchanged from 0.4.1

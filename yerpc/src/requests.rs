@@ -38,8 +38,14 @@ impl<T: RpcServer> RpcSession<T> {
         Self { client, server }
     }
 
+    /// Returns a reference to the JSON-RPC client.
     pub fn client(&self) -> &RpcClient {
         &self.client
+    }
+
+    /// Returns a reference to the JSON-RPC server.
+    pub fn server(&self) -> &T {
+        &self.server
     }
 
     pub fn into_sink(self) -> RpcSessionSink<T> {
