@@ -1,4 +1,4 @@
-## Unreleased
+## 0.4.3
 
 - add `RpcSession::server()` method
 
