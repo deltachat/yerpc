@@ -52,23 +52,18 @@ impl<T: RpcServer> RpcSession<T> {
         RpcSessionSink::Idle(Some(self))
     }
 
-    /// Handles incoming JSON-RPC request.
+    /// Processes incoming JSON-RPC message.
     ///
-    /// Blocks until request handler finishes.
-    /// Spawn a task if you want to run the request handler
-    /// concurrently.
-    pub async fn handle_incoming(&self, input: &str) {
+    /// Handles incoming requests and notifications,
+    /// returns a response if any.
+    pub async fn process_incoming(&self, input: &str) -> Option<Message> {
         let message: Message = match serde_json::from_str(input) {
             Ok(message) => message,
             Err(err) => {
-                let _ = self
-                    .client
-                    .tx(Message::Response(Response::error(
-                        None,
-                        Error::new(Error::PARSE_ERROR, err),
-                    )))
-                    .await;
-                return;
+                return Some(Message::Response(Response::error(
+                    None,
+                    Error::new(Error::PARSE_ERROR, err),
+                )));
             }
         };
 
@@ -91,14 +86,25 @@ impl<T: RpcServer> RpcSession<T> {
                         Err(err) => Some(Response::error(Some(id), err)),
                     },
                 };
-                if let Some(response) = response {
-                    let _ = self.client.tx(Message::Response(response)).await;
-                }
+                response.map(Message::Response)
             }
             Message::Response(response) => {
                 self.client.handle_response(response).await;
+                None
             }
-        };
+        }
+    }
+
+    /// Handles incoming JSON-RPC request.
+    ///
+    /// Sends response to the client.
+    /// Blocks until request handler finishes.
+    /// Spawn a task if you want to run the request handler
+    /// concurrently.
+    pub async fn handle_incoming(&self, input: &str) {
+        if let Some(response) = self.process_incoming(input).await {
+            let _ = self.client.tx(response).await;
+        }
     }
 }
 
