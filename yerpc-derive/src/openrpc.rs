@@ -83,6 +83,7 @@ fn generate_method(method: &RemoteProcedure) -> TokenStream {
     }
 }
 
+/// A macro generating an OpenRPC Document.
 fn generate_doc(info: &RpcInfo) -> TokenStream {
     let methods = &info.methods.iter().map(generate_method).collect::<Vec<_>>();
     let title = format!("{}", &info.self_ty.to_token_stream());
