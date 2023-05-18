@@ -1,9 +1,11 @@
-## 0.4.4
-
-- add `RpcSession::server()` method
+## Unreleased
 
 - Added openrpc.json output: enable it via `openrpc_outdir`, like this `#[rpc(openrpc_outdir = "./")]`
 - Breaking: you now need to specify that you want typescript bindings as they are not enabled by default `#[rpc(ts_outdir = "typescript/generated")]` instead of just `#[rpc]`
+
+## 0.4.4
+
+- add `RpcSession::server()` method
 
 ## 0.4.2
 
