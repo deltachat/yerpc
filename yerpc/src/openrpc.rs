@@ -4,6 +4,8 @@ use serde::Serialize;
 pub use schemars as type_def;
 pub use schemars::JsonSchema;
 
+/// [OpenRPC object](https://spec.open-rpc.org/#openrpc-object),
+/// the root of OpenRPC document.
 #[derive(Debug, Clone, Serialize)]
 pub struct Doc {
     pub openrpc: String,
@@ -11,15 +13,21 @@ pub struct Doc {
     pub methods: Vec<Method>,
 }
 
+/// [Info Object](https://spec.open-rpc.org/#info-object)
 #[derive(Debug, Clone, Serialize)]
 pub struct Info {
+    /// OpenRPC document version.
     pub version: String,
+
+    /// Application title.
     pub title: String,
 }
 
+/// [Method Object](https://spec.open-rpc.org/#method-object)
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Method {
+    /// Method name.
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub summary: Option<String>,
@@ -27,13 +35,18 @@ pub struct Method {
     pub description: Option<String>,
     pub params: Vec<Param>,
     pub result: Param,
+
+    /// Whether request params are an array or an object.
     pub param_structure: ParamStructure,
 }
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum ParamStructure {
+    /// Request params are an object.
     ByName,
+
+    /// Request params are an array.
     ByPosition,
 }
 
