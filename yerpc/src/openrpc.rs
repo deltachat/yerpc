@@ -1,5 +1,6 @@
 use schemars::{gen::SchemaSettings, schema::SchemaObject};
 use serde::Serialize;
+use std::collections::BTreeMap;
 
 pub use schemars as type_def;
 pub use schemars::JsonSchema;
@@ -11,6 +12,7 @@ pub struct Doc {
     pub openrpc: String,
     pub info: Info,
     pub methods: Vec<Method>,
+    pub components: Components,
 }
 
 /// [Info Object](https://spec.open-rpc.org/#info-object)
@@ -57,6 +59,12 @@ pub struct Param {
     pub description: Option<String>,
     pub schema: SchemaObject,
     pub required: bool,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct Components {
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub schemas: BTreeMap<String, SchemaObject>,
 }
 
 pub fn object_schema_to_params<T: JsonSchema>() -> anyhow::Result<Vec<Param>> {

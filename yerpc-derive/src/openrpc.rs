@@ -93,11 +93,17 @@ fn generate_doc(info: &RpcInfo) -> TokenStream {
             title: #title.to_string()
         }
     };
+    let components = quote! {
+        ::yerpc::openrpc::Components {
+            schemas: ::std::collections::BTreeMap::new()
+        }
+    };
     quote! {
         ::yerpc::openrpc::Doc {
             openrpc: "1.0.0".to_string(),
             info: #info,
             methods: vec![#(#methods),*],
+            components: #components
         }
     }
 }
