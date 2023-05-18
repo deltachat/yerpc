@@ -109,7 +109,7 @@ pub(crate) fn generate_openrpc_generator(info: &RpcInfo, outdir_path: &String) -
     let doc_spec = generate_doc(info);
 
     quote! {
-        /// Generate typescript bindings for the JSON-RPC API.
+        /// Generate OpenRPC description for the JSON-RPC API.
         #[cfg(test)]
         #[test]
         fn generate_openrpc_document() {
