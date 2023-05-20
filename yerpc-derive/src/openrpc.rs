@@ -4,11 +4,12 @@ use crate::{
     Inputs, RpcInfo,
 };
 use convert_case::{Case, Casing};
-use proc_macro2::TokenStream;
+use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use quote::ToTokens;
+use syn::Ident;
 
-fn generate_param(input: &Input, i: usize) -> TokenStream {
+fn generate_param(input: &Input, i: usize, definitions: Ident) -> TokenStream {
     let name = input
         .ident
         .map_or_else(|| format!("arg{}", i + 1), ToString::to_string)
@@ -18,20 +19,23 @@ fn generate_param(input: &Input, i: usize) -> TokenStream {
         ::yerpc::openrpc::Param {
             name: #name.to_string(),
             description: None,
-            schema: ::yerpc::openrpc::generate_schema::<#ty>(),
+            schema: {
+                let (schema, defs) = ::yerpc::openrpc::generate_schema::<#ty>();
+                #definitions.extend(defs);
+                schema
+            },
             required: true
         }
-
     }
 }
 
-fn generate_method(method: &RemoteProcedure) -> TokenStream {
+fn generate_method(method: &RemoteProcedure, definitions: Ident) -> TokenStream {
     let (params, param_structure) = match &method.input {
         Inputs::Positional(ref inputs) => {
             let params = inputs
                 .iter()
                 .enumerate()
-                .map(|(i, input)| generate_param(input, i))
+                .map(|(i, input)| generate_param(input, i, definitions.clone()))
                 .collect::<Vec<_>>();
             let params = quote!(vec![#(#params),*]);
             let structure = quote!(::yerpc::openrpc::ParamStructure::ByPosition);
@@ -39,7 +43,11 @@ fn generate_method(method: &RemoteProcedure) -> TokenStream {
         }
         Inputs::Structured(Some(input)) => {
             let ty = &input.ty;
-            let params = quote!(::yerpc::openrpc::object_schema_to_params::<#ty>().expect("Invalid parameter structure"));
+            let params = quote!({
+                let (params, defs) = ::yerpc::openrpc::object_schema_to_params::<#ty>().expect("Invalid parameter structure");
+                #definitions.extend(defs);
+                params
+            });
             let structure = quote!(::yerpc::openrpc::ParamStructure::ByName);
             (params, structure)
         }
@@ -67,7 +75,11 @@ fn generate_method(method: &RemoteProcedure) -> TokenStream {
         ::yerpc::openrpc::Param {
             name: #output_name.to_string(),
             description: None,
-            schema: ::yerpc::openrpc::generate_schema::<#output_ty>(),
+            schema: {
+                let (res, defs) = ::yerpc::openrpc::generate_schema::<#output_ty>();
+                #definitions.extend(defs);
+                res
+            },
             required: true
         }
     };
@@ -85,7 +97,12 @@ fn generate_method(method: &RemoteProcedure) -> TokenStream {
 
 /// A macro generating an OpenRPC Document.
 fn generate_doc(info: &RpcInfo) -> TokenStream {
-    let methods = &info.methods.iter().map(generate_method).collect::<Vec<_>>();
+    let definitions_ident = Ident::new("definitions", Span::call_site());
+    let methods = &info
+        .methods
+        .iter()
+        .map(|method| generate_method(method, definitions_ident.clone()))
+        .collect::<Vec<_>>();
     let title = format!("{}", &info.self_ty.to_token_stream());
     let info = quote! {
         ::yerpc::openrpc::Info {
@@ -93,17 +110,19 @@ fn generate_doc(info: &RpcInfo) -> TokenStream {
             title: #title.to_string()
         }
     };
-    let components = quote! {
-        ::yerpc::openrpc::Components {
-            schemas: ::std::collections::BTreeMap::new()
-        }
-    };
     quote! {
-        ::yerpc::openrpc::Doc {
-            openrpc: "1.0.0".to_string(),
-            info: #info,
-            methods: vec![#(#methods),*],
-            components: #components
+        {
+            let mut definitions: ::schemars::Map<String, ::schemars::schema::SchemaObject> = ::schemars::Map::new();
+            let methods = vec![#(#methods),*];
+            let components = ::yerpc::openrpc::Components {
+                schemas: definitions
+            };
+            ::yerpc::openrpc::Doc {
+                openrpc: "1.0.0".to_string(),
+                info: #info,
+                methods,
+                components
+            }
         }
     }
 }

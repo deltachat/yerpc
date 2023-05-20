@@ -1,6 +1,9 @@
-use schemars::{gen::SchemaSettings, schema::SchemaObject};
+use schemars::{
+    gen::SchemaSettings,
+    schema::SchemaObject,
+    Map,
+};
 use serde::Serialize;
-use std::collections::BTreeMap;
 
 pub use schemars as type_def;
 pub use schemars::JsonSchema;
@@ -63,12 +66,13 @@ pub struct Param {
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Components {
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub schemas: BTreeMap<String, SchemaObject>,
+    #[serde(default, skip_serializing_if = "Map::is_empty")]
+    pub schemas: Map<String, SchemaObject>,
 }
 
-pub fn object_schema_to_params<T: JsonSchema>() -> anyhow::Result<Vec<Param>> {
-    let schema = generate_schema::<T>();
+pub fn object_schema_to_params<T: JsonSchema>() -> anyhow::Result<(Vec<Param>, Map<String, SchemaObject>)>
+{
+    let (schema, definitions) = generate_schema::<T>();
     let properties = match schema.object.as_ref() {
         Some(obj) => &obj.properties,
         None => return Err(anyhow::anyhow!("Invalid parameter definition")),
@@ -82,15 +86,21 @@ pub fn object_schema_to_params<T: JsonSchema>() -> anyhow::Result<Vec<Param>> {
             required: true,
         });
     }
-    Ok(params)
+    Ok((params, definitions))
 }
 
-pub fn generate_schema<T: JsonSchema>() -> SchemaObject {
+/// Generates a single schema.
+///
+/// Returns schema object and referenced definitions
+/// to be put into `schemas` field
+/// of the [Components Object](https://spec.open-rpc.org/#components-object).
+pub fn generate_schema<T: JsonSchema>() -> (SchemaObject, Map<String, SchemaObject>) {
     let settings = SchemaSettings::draft07().with(|s| {
         s.inline_subschemas = false;
         s.definitions_path = "#/components/schemas/".to_string();
     });
     let gen = settings.into_generator();
     let schema = gen.into_root_schema_for::<T>();
-    schema.schema
+    let definitions: Map<String, SchemaObject> = schema.definitions.into_iter().map(|(k, v)| (k, v.into_object())).collect();
+    (schema.schema, definitions)
 }
