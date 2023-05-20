@@ -23,19 +23,7 @@
                 "type": "string"
               },
               "user": {
-                "type": "object",
-                "required": [
-                  "color",
-                  "name"
-                ],
-                "properties": {
-                  "color": {
-                    "type": "string"
-                  },
-                  "name": {
-                    "type": "string"
-                  }
-                }
+                "$ref": "#/components/schemas/User"
               }
             }
           },
@@ -64,31 +52,7 @@
           "title": "Array_of_ChatMessage",
           "type": "array",
           "items": {
-            "type": "object",
-            "required": [
-              "content",
-              "user"
-            ],
-            "properties": {
-              "content": {
-                "type": "string"
-              },
-              "user": {
-                "type": "object",
-                "required": [
-                  "color",
-                  "name"
-                ],
-                "properties": {
-                  "color": {
-                    "type": "string"
-                  },
-                  "name": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
+            "$ref": "#/components/schemas/ChatMessage"
           }
         },
         "required": true

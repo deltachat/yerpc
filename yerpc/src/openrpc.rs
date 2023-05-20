@@ -79,7 +79,8 @@ pub fn object_schema_to_params<T: JsonSchema>() -> anyhow::Result<Vec<Param>> {
 
 pub fn generate_schema<T: JsonSchema>() -> SchemaObject {
     let settings = SchemaSettings::draft07().with(|s| {
-        s.inline_subschemas = true;
+        s.inline_subschemas = false;
+        s.definitions_path = "#/components/schemas/".to_string();
     });
     let gen = settings.into_generator();
     let schema = gen.into_root_schema_for::<T>();
