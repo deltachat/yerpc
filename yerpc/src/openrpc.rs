@@ -95,12 +95,12 @@ pub fn generate_schema<T: JsonSchema>() -> (SchemaObject, Map<String, SchemaObje
         s.inline_subschemas = false;
         s.definitions_path = "#/components/schemas/".to_string();
     });
-    let gen = settings.into_generator();
-    let schema = gen.into_root_schema_for::<T>();
-    let definitions: Map<String, SchemaObject> = schema
-        .definitions
+    let mut gen = settings.into_generator();
+    let schema = gen.subschema_for::<T>();
+    let definitions: Map<String, SchemaObject> = gen
+        .take_definitions()
         .into_iter()
         .map(|(k, v)| (k, v.into_object()))
         .collect();
-    (schema.schema, definitions)
+    (schema.into_object(), definitions)
 }
