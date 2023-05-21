@@ -1,7 +1,11 @@
-## Unreleased
+## 0.5.0
+
+This release adds [OpenRPC](https://open-rpc.org/) generation support.
 
 - Added `openrpc.json` output: enable it with an `openrpc` feature and `openrpc_outdir` attribute, like this `#[rpc(openrpc_outdir = "./")]`
 - Breaking: you now need to specify that you want typescript bindings as they are not enabled by default `#[rpc(ts_outdir = "typescript/generated")]` instead of just `#[rpc]`
+- Add public `RpcSession.process_incoming()` method
+- Move scripts into scripts/ directory
 
 ## 0.4.4
 

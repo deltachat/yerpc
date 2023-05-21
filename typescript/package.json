@@ -1,7 +1,7 @@
 {
   "name": "yerpc",
   "type": "module",
-  "version": "0.4.3",
+  "version": "0.5.0",
   "author": "Franz Heinzmann <Frando>",
   "license": "MIT OR Apache-2.0",
   "main": "./dist/index.js",
