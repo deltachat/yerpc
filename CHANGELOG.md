@@ -1,3 +1,7 @@
+## 0.5.1
+
+- Do not inline method types. All definitions go into `#/components/schemas` and parameters reference them.
+
 ## 0.5.0
 
 This release adds [OpenRPC](https://open-rpc.org/) generation support.
