@@ -7,8 +7,6 @@ A JSON-RPC 2.0 server handler for Rust, with automatic generation of a TypeScrip
 
 yerpc includes (optional) integration with `axum` and `tokio-tungstenite` for easy setup and usage. Enable the `support-axum` and `support-tungstenite`  feature flags for these integrations.
 
-Integration with `tide` is available through the included `yerpc-tide` crate.
-
 ## Example
 ```rust
 use axum::{
