@@ -2733,19 +2733,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "yerpc-tide"
-version = "0.5.0"
-dependencies = [
- "anyhow",
- "async-std",
- "futures",
- "serde_json",
- "tide",
- "tide-websockets",
- "yerpc",
-]
-
-[[package]]
 name = "yerpc_derive"
 version = "0.5.0"
 dependencies = [
@@ -2794,5 +2781,4 @@ dependencies = [
  "tide-websockets",
  "typescript-type-def",
  "yerpc",
- "yerpc-tide",
 ]
