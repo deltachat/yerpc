@@ -28,7 +28,10 @@ pub trait RpcServer: Sync + Send + 'static {
         _method: String,
         _params: serde_json::Value,
     ) -> Result<serde_json::Value> {
-        Err(Error::new(Error::METHOD_NOT_FOUND, "Method not found"))
+        Err(Error::new(
+            Error::METHOD_NOT_FOUND,
+            "Method not found".to_string(),
+        ))
     }
 }
 
@@ -155,10 +158,10 @@ impl Error {
     pub const BAD_RESPONSE: i32 = -32001;
     pub const REMOTE_DISCONNECTED: i32 = -32002;
 
-    pub fn new(code: i32, message: impl ToString) -> Self {
+    pub fn new(code: i32, message: String) -> Self {
         Self {
             code,
-            message: message.to_string(),
+            message,
             data: None,
         }
     }
@@ -172,11 +175,14 @@ impl Error {
     }
 
     pub fn invalid_params() -> Self {
-        Self::new(Error::INVALID_PARAMS, "Params has to be an object or array")
+        Self::new(
+            Error::INVALID_PARAMS,
+            "Params has to be an object or array".to_string(),
+        )
     }
 
     pub fn method_not_found() -> Self {
-        Self::new(Error::METHOD_NOT_FOUND, "Method not found")
+        Self::new(Error::METHOD_NOT_FOUND, "Method not found".to_string())
     }
 
     pub fn invalid_args_len(n: usize) -> Self {
@@ -187,13 +193,22 @@ impl Error {
     }
 
     pub fn bad_response() -> Self {
-        Self::new(Error::BAD_RESPONSE, "Error while processing a response")
+        Self::new(
+            Error::BAD_RESPONSE,
+            "Error while processing a response".to_string(),
+        )
     }
     pub fn bad_request() -> Self {
-        Self::new(Error::BAD_REQUEST, "Error while serializing a request")
+        Self::new(
+            Error::BAD_REQUEST,
+            "Error while serializing a request".to_string(),
+        )
     }
     pub fn remote_disconnected() -> Self {
-        Self::new(Error::REMOTE_DISCONNECTED, "Remote disconnected")
+        Self::new(
+            Error::REMOTE_DISCONNECTED,
+            "Remote disconnected".to_string(),
+        )
     }
 
     pub fn is_disconnnected(&self) -> bool {

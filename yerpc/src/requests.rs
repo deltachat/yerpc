@@ -62,7 +62,7 @@ impl<T: RpcServer> RpcSession<T> {
             Err(err) => {
                 return Some(Message::Response(Response::error(
                     None,
-                    Error::new(Error::PARSE_ERROR, err),
+                    Error::new(Error::PARSE_ERROR, err.to_string()),
                 )));
             }
         };
