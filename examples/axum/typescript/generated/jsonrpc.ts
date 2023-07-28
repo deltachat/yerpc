@@ -3,9 +3,81 @@
 export type JSONValue=(null|boolean|number|string|(JSONValue)[]|{[key:string]:JSONValue;});
 export type Params=((JSONValue)[]|Record<string,JSONValue>);
 export type U32=number;
+
+/**
+ * Request identifier as found in Request and Response objects.
+ */
 export type Id=(U32|string);
-export type Request={"jsonrpc"?:"2.0";"method":string;"params"?:Params;"id"?:Id;};
+
+/**
+ * Request object.
+ */
+export type Request=
+/**
+ * Request object.
+ */
+{
+/**
+ * JSON-RPC protocol version.
+ */
+"jsonrpc"?:"2.0";
+/**
+ * Name of the method to be invoked.
+ */
+"method":string;
+/**
+ * Method parameters.
+ */
+"params"?:Params;
+/**
+ * Request identifier.
+ */
+"id"?:Id;};
 export type I32=number;
-export type Error={"code":I32;"message":string;"data"?:JSONValue;};
-export type Response={"jsonrpc":"2.0";"id":(Id|null);"result"?:JSONValue;"error"?:Error;};
+
+/**
+ * Error object returned in response to a failed RPC call.
+ */
+export type Error=
+/**
+ * Error object returned in response to a failed RPC call.
+ */
+{
+/**
+ * Error code indicating the error type.
+ */
+"code":I32;
+/**
+ * Short error description.
+ */
+"message":string;
+/**
+ * Additional information about the error.
+ */
+"data"?:JSONValue;};
+
+/**
+ * Response object.
+ */
+export type Response=
+/**
+ * Response object.
+ */
+{
+/**
+ * JSON-RPC protocol version.
+ */
+"jsonrpc":"2.0";
+/**
+ * Request identifier.
+ */
+"id":(Id|null);
+/**
+ * Return value of the method.
+ */
+"result"?:JSONValue;
+/**
+ * Error occured during the method invocation.
+ */
+"error"?:Error;};
 export type Message=(Request|Response);

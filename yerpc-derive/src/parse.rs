@@ -5,11 +5,17 @@ use syn::{FnArg, Generics, Ident, ImplItem, ImplItemMethod, ItemImpl, Pat, Retur
 
 use crate::RootAttrArgs;
 
+/// Result of parsing the `impl` of an RPC server.
 #[derive(Debug)]
 pub(crate) struct RpcInfo<'s> {
     pub self_ty: &'s Type,
     pub _attr_args: &'s RootAttrArgs,
+
+    /// Descriptions of RPC methods.
     pub methods: Vec<RemoteProcedure<'s>>,
+
+    /// Lifetype and type parameters that appear
+    /// between the `impl` keyword and the type.
     pub generics: &'s Generics,
 }
 
@@ -35,22 +41,37 @@ impl<'s> RpcInfo<'s> {
     }
 }
 
+/// Description of a single RPC method.
 #[derive(Debug)]
 pub(crate) struct RemoteProcedure<'s> {
+    /// Identifier of the function implementing the method.
     pub ident: &'s Ident,
+
+    /// Method name as should be sent in a JSON-RPC requst.
+    ///
+    /// By default the same as the function name,
+    /// but may be overridden by an attribute.
     pub name: String,
+
+    /// Description of the method parameters.
     pub input: Inputs<'s>,
+
+    /// Output type of the method.
     pub output: Option<&'s Type>,
     pub is_notification: bool,
+
+    /// Documentation extracted from the documentation comment.
     pub docs: Option<String>,
 }
 
+/// Description of a single method parameters.
 #[derive(Debug)]
 pub(crate) enum Inputs<'s> {
     Positional(Vec<Input<'s>>),
     Structured(Option<Input<'s>>),
 }
 
+/// Description of a single method parameter.
 #[derive(Debug)]
 pub(crate) struct Input<'s> {
     pub ident: Option<&'s Ident>,

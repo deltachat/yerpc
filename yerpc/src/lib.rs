@@ -37,6 +37,7 @@ pub trait RpcServer: Sync + Send + 'static {
 
 impl RpcServer for () {}
 
+/// Request identifier as found in Request and Response objects.
 #[derive(Serialize, Deserialize, Debug, TypeDef, Eq, Hash, PartialEq, Clone)]
 #[serde(untagged)]
 pub enum Id {
@@ -94,27 +95,44 @@ impl TryFrom<serde_json::Value> for Params {
     }
 }
 
+/// Request object.
 #[derive(Serialize, Deserialize, Debug, TypeDef)]
 pub struct Request {
+    /// JSON-RPC protocol version.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub jsonrpc: Option<Version>, // JSON-RPC 1.0 has no jsonrpc field
+
+    /// Name of the method to be invoked.
     pub method: String,
+
+    /// Method parameters.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub params: Option<Params>,
+
+    /// Request identifier.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<Id>,
 }
 
+/// Response object.
 #[derive(Serialize, Deserialize, Debug, TypeDef)]
 pub struct Response {
+    /// JSON-RPC protocol version.
     pub jsonrpc: Version,
+
+    /// Request identifier.
     pub id: Option<Id>,
+
+    /// Return value of the method.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub result: Option<serde_json::Value>,
+
+    /// Error occured during the method invocation.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error: Option<Error>,
 }
 impl Response {
+    /// Creates a new Response object indicating an error.
     pub fn error(id: Option<Id>, error: Error) -> Self {
         Self {
             jsonrpc: Version::V2,
@@ -123,6 +141,7 @@ impl Response {
             result: None,
         }
     }
+    /// Creates a new Response object indicating a success.
     pub fn success(id: Id, result: serde_json::Value) -> Self {
         Self {
             jsonrpc: Version::V2,
@@ -133,11 +152,17 @@ impl Response {
     }
 }
 
+/// Error object returned in response to a failed RPC call.
 #[derive(Serialize, Deserialize, Debug, TypeDef)]
 #[cfg_attr(feature = "openrpc", derive(JsonSchema))]
 pub struct Error {
+    /// Error code indicating the error type.
     pub code: i32,
+
+    /// Short error description.
     pub message: String,
+
+    /// Additional information about the error.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<serde_json::Value>,
 }
@@ -158,6 +183,7 @@ impl Error {
     pub const BAD_RESPONSE: i32 = -32001;
     pub const REMOTE_DISCONNECTED: i32 = -32002;
 
+    /// Creates a new error object.
     pub fn new(code: i32, message: String) -> Self {
         Self {
             code,
@@ -166,6 +192,7 @@ impl Error {
         }
     }
 
+    /// Creates a new error object with additional information.
     pub fn with_data(code: i32, message: String, data: Option<serde_json::Value>) -> Self {
         Self {
             code,
@@ -174,6 +201,7 @@ impl Error {
         }
     }
 
+    /// Creates a new error object indicating invalid method parameters.
     pub fn invalid_params() -> Self {
         Self::new(
             Error::INVALID_PARAMS,
@@ -181,6 +209,7 @@ impl Error {
         )
     }
 
+    /// Creates a new error object indicating that the method does not exist.
     pub fn method_not_found() -> Self {
         Self::new(Error::METHOD_NOT_FOUND, "Method not found".to_string())
     }

@@ -1,3 +1,7 @@
+//! # Derivation macros for yerpc
+
+#![warn(missing_debug_implementations, missing_docs)]
+
 extern crate darling;
 use darling::{FromAttributes, FromMeta};
 #[cfg(feature = "openrpc")]
