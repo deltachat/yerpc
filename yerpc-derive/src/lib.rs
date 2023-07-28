@@ -1,6 +1,6 @@
 //! # Derivation macros for yerpc
 
-#![warn(missing_debug_implementations, missing_docs)]
+#![warn(missing_debug_implementations, missing_docs, clippy::wildcard_imports)]
 
 extern crate darling;
 use darling::{FromAttributes, FromMeta};
@@ -15,9 +15,9 @@ mod openrpc;
 mod parse;
 mod rpc;
 mod ts;
-pub(crate) use parse::*;
-pub(crate) use rpc::*;
-pub(crate) use ts::*;
+pub(crate) use parse::{Inputs, RpcInfo};
+pub(crate) use rpc::generate_rpc_impl;
+pub(crate) use ts::generate_typescript_generator;
 pub(crate) mod util;
 
 /// Generates the jsonrpc handler and types.

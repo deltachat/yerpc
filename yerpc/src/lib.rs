@@ -1,3 +1,5 @@
+#![warn(clippy::wildcard_imports)]
+
 pub use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
