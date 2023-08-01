@@ -2,6 +2,9 @@ use crate::{util::is_result_ty, Inputs, RpcInfo};
 use proc_macro2::TokenStream;
 use quote::quote;
 
+#[cfg(feature = "openrpc")]
+use crate::openrpc::generate_doc;
+
 pub(crate) fn generate_rpc_impl(info: &RpcInfo) -> TokenStream {
     let mut request_arms = vec![];
     let mut notification_arms = vec![];
@@ -66,12 +69,29 @@ pub(crate) fn generate_rpc_impl(info: &RpcInfo) -> TokenStream {
 
     let struc = &info.self_ty;
     let crat = quote! { ::yerpc };
+
+    #[cfg(feature = "openrpc")]
+    let openrpc_doc = generate_doc(info);
+
+    #[cfg(not(feature = "openrpc"))]
+    let openrpc_specification_method = quote! {};
+
+    #[cfg(feature = "openrpc")]
+    let openrpc_specification_method = quote! {
+        fn openrpc_specification() -> Result<String, #crat::Error> {
+            let doc = #openrpc_doc;
+            let json = ::serde_json::to_string_pretty(&doc)?;
+            Ok(json.to_string())
+        }
+    };
     let (impl_generics, _ty_generics, where_clause) = &info.generics.split_for_impl();
 
     quote! {
         #[automatically_derived]
         #[::yerpc::async_trait]
         impl #impl_generics #crat::RpcServer for #struc #where_clause {
+            #openrpc_specification_method
+
             async fn handle_request(
                 &self,
                 method: String,

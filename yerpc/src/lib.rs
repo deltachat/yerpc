@@ -22,6 +22,12 @@ pub use integrations::*;
 
 #[async_trait]
 pub trait RpcServer: Sync + Send + 'static {
+    /// Returns OpenRPC specification as a string.
+    #[cfg(feature = "openrpc")]
+    fn openrpc_specification() -> Result<String> {
+        Ok(String::new())
+    }
+
     async fn handle_notification(&self, _method: String, _params: serde_json::Value) -> Result<()> {
         Ok(())
     }

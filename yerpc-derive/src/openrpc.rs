@@ -96,7 +96,7 @@ fn generate_method(method: &RemoteProcedure, definitions: Ident) -> TokenStream 
 }
 
 /// A macro generating an OpenRPC Document.
-fn generate_doc(info: &RpcInfo) -> TokenStream {
+pub(crate) fn generate_doc(info: &RpcInfo) -> TokenStream {
     let definitions_ident = Ident::new("definitions", Span::call_site());
     let methods = &info
         .methods
