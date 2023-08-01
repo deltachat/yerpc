@@ -1,3 +1,9 @@
+## 0.5.2
+
+- Add `openrpc_specification()` method to RpcServer trait
+- Remove `yerpc-tide` crate
+- Add documentation comments
+
 ## 0.5.1
 
 - Do not inline method types. All definitions go into `#/components/schemas` and parameters reference them.
