@@ -1,2 +1,3 @@
 [workspace]
 members = ["yerpc-derive", "yerpc", "examples/tide", "examples/axum"]
+resolver = "2"
