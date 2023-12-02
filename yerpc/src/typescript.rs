@@ -1,3 +1,4 @@
+use std::fmt::Write;
 use std::io;
 use std::path::Path;
 use typescript_type_def::{type_expr::TypeInfo, write_definition_file, DefinitionFileOptions};
@@ -92,10 +93,10 @@ impl Method {
             (output, "notification")
         };
         let docs = if let Some(docs) = &self.docs {
-            let docs = docs
-                .split('\n')
-                .map(|s| format!("   *{s}\n"))
-                .collect::<String>();
+            let docs = docs.split('\n').fold(String::new(), |mut output, s| {
+                let _ = writeln!(output, "   *{s}");
+                output
+            });
             format!("  /**\n{docs}   */")
         } else {
             "".into()
