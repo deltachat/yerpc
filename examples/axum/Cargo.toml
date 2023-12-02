@@ -14,15 +14,15 @@ path = "src/webserver.rs"
 anyhow = "1.0.57"
 serde = "1.0.136"
 serde_json = "1.0.79"
+axum = { version = "0.7.1", features = ["ws"] }
 futures = "0.3.21"
 log = "0.4.16"
 async-trait = "0.1.53"
 typescript-type-def = { version = "0.5.3", features = ["json_value"] }
 async-broadcast = "0.4.0"
-yerpc = { path  = "../../yerpc", features = ["anyhow", "support-axum"]}
-axum = { version = "0.6.6", features = ["ws"] }
 tokio = { version = "1.19.2", features = ["full"] }
+tower-http = { version = "0.5.0", features = ["trace"] }
 tracing = "0.1.35"
 tracing-subscriber = "0.3.11"
-tower-http = { version = "0.3.0", features = ["trace"] }
 schemars = "0.8.11"
+yerpc = { path  = "../../yerpc", features = ["anyhow", "support-axum"]}

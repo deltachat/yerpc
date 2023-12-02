@@ -1,12 +1,11 @@
 #[cfg(all(test, feature = "support-axum", feature = "support-tungstenite"))]
 mod tests {
-    use axum::{
-        extract::ws::WebSocketUpgrade, http::StatusCode, response::Response, routing::get, Router,
-    };
+    use axum::{extract::ws::WebSocketUpgrade, response::Response, routing::get, Router};
     use futures_util::{SinkExt, StreamExt};
     use std::net::SocketAddr;
     use tokio::net::TcpStream;
     use tokio_tungstenite::client_async;
+    use tokio_tungstenite::tungstenite::http::StatusCode;
     use tokio_tungstenite::tungstenite::Message;
     use yerpc::axum::handle_ws_rpc;
     use yerpc::tungstenite::tungstenite_client;
@@ -41,10 +40,9 @@ mod tests {
     async fn test_axum_websocket() -> anyhow::Result<()> {
         let app = Router::new().route("/rpc", get(handler));
         let addr = SocketAddr::from(([127, 0, 0, 1], 12345));
-        let listener = std::net::TcpListener::bind(addr).unwrap();
-        let server = axum::Server::from_tcp(listener).unwrap();
+        let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
         tokio::spawn(async move {
-            server.serve(app.into_make_service()).await.unwrap();
+            axum::serve(listener, app).await.unwrap();
         });
 
         let tcp = TcpStream::connect("127.0.0.1:12345")

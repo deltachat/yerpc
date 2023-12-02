@@ -144,10 +144,8 @@ async fn main() -> Result<(), std::io::Error> {
         .layer(Extension(backend));
     let addr = SocketAddr::from(([127, 0, 0, 1], 20808));
     println!("listening on {addr}");
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service_with_connect_info::<SocketAddr>())
-        .await
-        .unwrap();
+    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
+    axum::serve(listener, app).await.unwrap();
 
     Ok(())
 }
